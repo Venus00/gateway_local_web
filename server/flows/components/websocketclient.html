@@ -1,0 +1,112 @@
+<script total>
+
+    exports.id = 'websocketclient';
+    exports.name = 'WebSocket Client';
+    exports.icon = 'ti ti-websocket';
+    exports.version = '1.0.0';
+    exports.group = 'Digisense';
+    exports.author = 'FARHAT OUSSAMA';
+
+    exports.config = {
+        url: 'ws://voc4g4c4c40g80gko48swck8.154.144.229.22.sslip.io',
+        event: 'event',
+        reconnectInterval: 5000
+    };
+    exports.npm = ['socket.io-client']
+    exports.flag = ['socket.io-client']
+    exports.inputs = [{ id: 'input', name: 'Message to send' }];
+    exports.outputs = [
+        { id: 'output', name: 'Received Data' },
+        { id: 'error', name: 'Error' },
+        { id: 'status', name: 'Connection Status' }
+    ];
+
+
+
+    exports.make = function (instance, config) {
+        const io = require('socket.io-client');
+        let socketClient;
+        function updateStatus(statusMessage) {
+            instance.send('status', statusMessage);
+        }
+
+        function connectWebSocket() {
+            socketClient = io(config.url);
+
+            socketClient.on('connect', function () {
+                console.log('WebSocket connected to namespace:', config.namespace);
+                updateStatus('Connected to WebSocket');
+            });
+
+            socketClient.on(config.event, function (data) {
+                console.log('Data from WebSocket server:', data);
+                instance.send('output', data);
+            });
+
+            socketClient.on('error', function (err) {
+                console.error('WebSocket error:', err);
+                instance.send('error', 'WebSocket error: ' + err.message);
+            });
+
+            socketClient.on('disconnect', function () {
+                updateStatus('Disconnected from WebSocket');
+                console.log('WebSocket disconnected');
+                setTimeout(connectWebSocket, config.reconnectInterval);
+            });
+        }
+
+        connectWebSocket();
+
+        instance.message = function ($) {
+            const msgToSend = $.data;
+
+            if (!msgToSend || typeof msgToSend !== 'string') {
+                $.send('error', 'Invalid input (string expected).');
+                return;
+            }
+
+            if (socketClient && socketClient.connected) {
+                socketClient.emit('message', msgToSend);
+            } else {
+                $.send('error', 'WebSocket not connected.');
+            }
+        };
+
+        instance.configure = function () {
+
+            config = instance.replace(config);
+        };
+        instance.configure();
+    };
+
+</script>
+
+<readme>
+
+</readme>
+
+<settings>
+    <div class="padding">
+        <div class="m">
+            <ui-component name="input" path="?.url" config="placeholder:ws://localhost:8080;required:1">
+                WebSocket URL
+            </ui-component>
+        </div>
+        <div class="m">
+            <ui-component name="input" path="?.event" config="placeholder:event;required:1">
+                Namespace
+            </ui-component>
+        </div>
+        <div class="m">
+            <ui-component name="input" path="?.reconnectInterval" config="type:number;placeholder:5000;required:1">
+                Reconnect Interval (ms)
+            </ui-component>
+        </div>
+    </div>
+</settings>
+
+<body>
+    <header>
+        <i class="ICON"></i>NAME
+    </header>
+</body>

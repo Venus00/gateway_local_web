@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1746904894666,
+      "tag": "0000_warm_warpath",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1747065552541,
+      "tag": "0001_tense_jazinda",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747065609317,
+      "tag": "0002_gifted_spitfire",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1747065615104,
+      "tag": "0003_vengeful_mister_sinister",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1747228341241,
+      "tag": "0004_colorful_revanche",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1747739339828,
+      "tag": "0005_fine_puck",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1747861895525,
+      "tag": "0006_slippery_ares",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1748261127457,
+      "tag": "0007_green_black_knight",
+      "breakpoints": true
+    }
+  ]
+}

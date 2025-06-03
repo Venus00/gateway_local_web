@@ -1,0 +1,79 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script total>
+        exports.id = 'ai_analyser';
+        exports.name = 'AI ANALYSER ';
+        exports.icon = 'ti ti-plug';
+        exports.author = 'Oussama Farhat';
+        exports.version = '1.0.3';
+        exports.group = 'Custom';
+        exports.npm = [''];
+        exports.flag = [''];
+        exports.config =
+        {
+            url: 'https://ai.digisense.es/api/chat/completions',
+            token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI5YmY1YmM0LWE0YmEtNGUwNy04NWUxLTBjYWI1ZWNkYTcwNSJ9.mjOMshTafLf98w9SObkLQo6liHdLTLD0co_keSxr5nI',
+            model: 'deepseek-r1:latest'
+        };
+        exports.inputs = [{ id: 'input', name: 'Prompt (String)' }];
+        exports.outputs = [{ id: 'output', name: 'Output' }, { id: 'status', name: 'Status' }];
+        exports.make = function (instance, config) {
+            instance.message = function ($) {
+                const prompt = $.data; if (!prompt || typeof prompt !== 'string') { $.send('error', 'Invalid input (string expected).'); return; }
+                const body = { model: config.model, messages: [{ role: 'user', content: prompt }] };
+                let builder = RESTBuilder.POST(config.url, body).header('Content-Type', 'application/json').keepalive().timeout(30000); // Add token if provided
+                if (config.token) { builder.header('Authorization', 'Bearer ' + config.token); }
+                builder.callback(function (err, response) {
+                    if (err) {
+                        $.send('error', err);
+                        return;
+                    } if (!response) {
+                        $.send('error', 'Empty response from server.');
+                        return;
+                    }
+                    try {
+                        const json = typeof response === 'string' ? JSON.parse(response) : response; const answer = json?.choices?.[0]?.message?.content || '';
+                        $.send('output', answer);
+                    } catch (e) {
+                        $.send('error', 'Invalid JSON response: ' + e.message);
+                    }
+                });
+            };
+        };
+    </script>
+</head>
+<settings>
+    <div class="padding">
+        <div class="form-group">
+            <ui-component name="input" path="?.url"
+                config="placeholder:https://ai.digisense.es/api/chat/completions;required:1">API
+                URL</ui-component>
+        </div>
+        <div class="form-group"><ui-component name="input" path="?.token" config="placeholder:1">Bearer Token
+                (JWT)</ui-component></div>
+        <div class="form-group"><ui-component name="input" path="?.model"
+                config="placeholder:deepseek-r1:latest">Model</ui-component></div>
+    </div>
+</settings>
+<script>
+    TOUCH(function (exports) {
+        exports.settings = function () { };
+        exports.configure = function (config) { console.log("Current config:", config); };
+    });
+</script>
+
+<body>
+    <header><i class="$ICON"></i> $NAME</header>
+    <footer class="footer">AI Platform</footer>
+</body>
+<style>
+    .footer {
+        padding: 10px;
+        font-size: 12px;
+        color: #888;
+    }
+</style>
+
+</html>

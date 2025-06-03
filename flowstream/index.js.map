@@ -1,0 +1,124 @@
+{
+	"routes": [
+		{
+			"id": "streams",
+			"method": "API",
+			"url": "/api/",
+			"auth": 1,
+			"error": "Action not found",
+			"owner": "controller_api"
+		},
+		{
+			"id": "streams_read",
+			"method": "API",
+			"url": "/api/",
+			"auth": 1,
+			"error": "Action not found",
+			"owner": "controller_api"
+		},
+		{
+			"id": "streams_save",
+			"method": "API",
+			"url": "/api/",
+			"auth": 1,
+			"error": "Action not found",
+			"owner": "controller_api"
+		},
+		{
+			"id": "streams_remove",
+			"method": "API",
+			"url": "/api/",
+			"auth": 1,
+			"error": "Action not found",
+			"owner": "controller_api"
+		},
+		{
+			"id": "streams_stats",
+			"method": "API",
+			"url": "/api/",
+			"auth": 1,
+			"error": "Action not found",
+			"owner": "controller_api"
+		},
+		{
+			"id": "streams_pause",
+			"method": "API",
+			"url": "/api/",
+			"auth": 1,
+			"error": "Action not found",
+			"owner": "controller_api"
+		},
+		{
+			"id": "streams_restart",
+			"method": "API",
+			"url": "/api/",
+			"auth": 1,
+			"error": "Action not found",
+			"owner": "controller_api"
+		},
+		{
+			"id": "variables",
+			"method": "API",
+			"url": "/api/",
+			"auth": 1,
+			"error": "Action not found",
+			"owner": "controller_api"
+		},
+		{
+			"id": "variables_save",
+			"method": "API",
+			"url": "/api/",
+			"auth": 1,
+			"error": "Action not found",
+			"owner": "controller_api"
+		},
+		{
+			"id": "clipboard_export",
+			"method": "API",
+			"url": "/api/",
+			"auth": 1,
+			"error": "Action not found",
+			"owner": "controller_api"
+		},
+		{
+			"id": "clipboard_import",
+			"method": "API",
+			"url": "/api/",
+			"auth": 1,
+			"error": "Action not found",
+			"owner": "controller_api",
+			"timeout": 300000
+		},
+		{
+			"method": "POST",
+			"url": "/api/",
+			"auth": 1,
+			"owner": "controller_api"
+		},
+		{
+			"method": "GET",
+			"url": "/",
+			"auth": 1,
+			"owner": "controller_default"
+		},
+		{
+			"method": "POST",
+			"url": "/notify/{id}/",
+			"owner": "controller_api",
+			"params": "id:string"
+		},
+		{
+			"method": "GET",
+			"url": "/notify/{id}/",
+			"owner": "controller_api",
+			"params": "id:string"
+		},
+		{
+			"method": "SOCKET",
+			"url": "/flows/{id}/",
+			"auth": 1,
+			"owner": "controller_api",
+			"params": "id:string"
+		}
+	]
+}

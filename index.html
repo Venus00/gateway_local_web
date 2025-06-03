@@ -1,0 +1,22 @@
+<script src=" https://cdn.jsdelivr.net/npm/video.js@8.22.0/dist/video.min.js "></script>
+<link href=" https://cdn.jsdelivr.net/npm/video.js@8.22.0/dist/video-js.min.css " rel="stylesheet">
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flv.js/1.6.2/flv.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flv.js/1.6.2/flv.js"></script>
+
+
+<video id="videoElement"></video>
+<script>
+    if (flvjs.isSupported()) {
+        var videoElement = document.getElementById('videoElement');
+        var flvPlayer = flvjs.createPlayer({
+            type: 'flv',
+            islive: true,
+            url: 'http://154.144.229.22:7002/live/58b9d7699ab9.flv'
+        });
+        flvPlayer.attachMediaElement(videoElement);
+        flvPlayer.load();
+        flvPlayer.play();
+    }
+</script>

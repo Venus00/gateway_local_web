@@ -1,0 +1,158 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script total>
+    exports.id = 'digisense_trigger_dashboard';
+    exports.name = 'Digisense trigger Dashboard';
+    exports.icon = 'ti ti-plug';
+    exports.author = 'Oussama Farhat';
+    exports.version = '1.0.3';
+    exports.group = 'Custom';
+    exports.npm = ['socket.io-client'];
+    exports.flag = ['socket.io-client'];
+    exports.config = {
+        flowName:undefined,
+        isRegistered:false,
+        url: 'https://cloud.digisense.es',
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEyLCJ0ZW5hbnRJZCI6MTUsImVtYWlsIjoieWFzc2luZUBkaWdpc2Vuc2UuZXMiLCJyb2xlIjoiIiwicGVybWlzc2lvbnMiOltdLCJpYXQiOjE3NDcwOTI5NTMsImV4cCI6MTc3ODYyODk1M30.J_iq86wIQ92QFsiUzJpZEewbiw50EhSldx-_F9DaqvA',
+        inputName:undefined
+    };
+    
+    exports.inputs = [];
+    
+    exports.outputs = [
+        { id: 'output', name: 'Output' },
+        { id: 'status', name: 'Stauts' },
+    ];
+    
+    exports.make = function(instance, config) {
+        let socket;
+    
+    
+        instance.configure = function(config) {
+            console.log("Connecting to Socket.IO...");
+            connectSocketIO();
+        };
+        function connectSocketIO() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+    
+            instance.status({ text: 'connecting to socket now ....', color: '#c0392b' });
+            console.log("connect sockett");
+    
+                const io = require('socket.io-client');
+    
+                socket = io(config.url, {
+                    transports: ['websocket']
+                });
+    
+                const eventName = `analyticData/${config.flowName}/${config.inputName}`;
+    
+                socket.on('connect', () => {
+                    instance.status({ text: `Connected: ${eventName}`, color: '#27ae60' });
+                });
+    
+                socket.on(eventName, (payload) => {
+                    instance.send('output', payload);
+                });
+    
+                socket.on('disconnect', () => {
+                    instance.status({ text: 'Disconnected', color: '#c0392b' });
+                });
+    
+                socket.on('connect_error', err => {
+                    instance.throw(`Socket.IO error: ${err.message}`);
+                    instance.status({ text: 'Connected', color: '#c0392b' });
+                });
+    
+    
+        }
+    
+        instance.close = function() {
+            if (socket)
+                socket.disconnect();
+        };
+    
+    
+    
+    };
+    </script>
+    </head>
+    <settings>
+    
+        <div class="padding">
+            <div class="form-group">
+                <ui-component name="input" path="?.url" config="placeholder:https://cloud.digisense.es;required:1">
+                    API URL
+                </ui-component>
+            </div>
+            <div class="form-group">
+                <ui-component name="textarea" path="?.token" config="placeholder:1;">
+                    Bearer Token (JWT)
+                </ui-component>
+            </div>
+            <div class="form-group">
+                <ui-component name="input" path="?.inputName" config="placeholder:1">
+                    Input Name
+                </ui-component>
+            </div>
+            <div class="form-group">
+                <ui-component name="input" path="?.flowName" config="placeholder:1">
+                    flow Name
+                </ui-component>
+            </div>
+        </div>
+    </settings>
+    
+    <script>
+    TOUCH(function(exports) {
+    
+    
+        exports.settings = function() {
+    
+        };
+    
+        exports.configure = function(config) {
+            submitInput();
+        };
+    
+        function submitInput(){
+            console.log(exports.config.inputName,exports.config.flowName)
+            console.log('Token:', exports.config.token);
+    
+            const body = {
+                name:exports.config.inputName ,
+                serial:exports.config.flowName,
+            };
+    
+            $.ajax({
+                url:  `${exports.config.url}/api/v1/analytic/output` ,
+                type: 'POST',
+                headers: { Authorization: 'Bearer ' + exports.config.token },
+                data:body,
+                success(response) {
+                    exports.config.isRegisterd = true;
+                },
+                error(err) {
+                    console.error('Failed to register output:', err);
+                }
+            });
+        }
+    
+    });
+    
+    
+    </script>
+    
+    <body>
+        <header><i class="$ICON"></i> $NAME</header>
+        <footer class="footer">AI Platform</footer>
+    </body>
+    
+    <style>
+    .footer {
+        padding: 10px;
+        font-size: 12px;
+        color: #888;
+    }
+    </style>
+    </html>

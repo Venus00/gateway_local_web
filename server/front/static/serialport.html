@@ -1,0 +1,124 @@
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <script total="">
+
+        exports.id = 'serialport';
+        exports.name = 'SerialPort';
+        exports.group = 'Digisense';
+        exports.author = 'Digisense'
+        exports.icon = 'ti ti-totaljs';
+        exports.version = '3';
+        exports.config = { port: '/dev/ttyS3', baudRate: 9600, dataBits: 8, stopBits: 1, parity: 'none' };
+        exports.inputs = [];
+        exports.outputs = [{ id: 'output', name: 'Data' }];
+        exports.npm = ['serialport', '@serialport/parser-readline'];
+        exports.flags = ['serialport'];
+
+        exports.make = function (instance, config) {
+            const { SerialPort } = require('serialport');
+            const { ReadlineParser } = require('@serialport/parser-readline')
+            let port;
+
+            const state = () => {
+                const obj = port && port.isOpen ? { status: 'connected' } : { status: 'disconnected' };
+                instance.state = obj;
+                instance.status(obj);
+                return obj;
+            };
+
+            instance.configure = function () {
+                disconnect(connect);
+            };
+
+            instance.close = function () {
+                disconnect();
+            };
+
+            instance.configure();
+
+            function disconnect(callback) {
+                if (!port) return callback && callback();
+                port.close(() => {
+                    port = null;
+                    callback && callback();
+                });
+            }
+
+            function connect() {
+                if (!config.port) return;
+                port = new SerialPort({
+                    path: config.port,
+                    baudRate: config.baudRate,
+                    dataBits: config.dataBits,
+                    stopBits: config.stopBits,
+                    parity: config.parity,
+                });
+
+                const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }))
+
+                port.on('open', () => state());
+                parser.on('data', (data) => instance.send('output', { data: data.toString() }));
+                port.on('close', () => state());
+                port.on('error', (err) => console.error('SerialPort error:', err));
+            }
+        };
+    </script>
+</head>
+
+<body>
+    <readme>
+
+    </readme>
+
+    <style>
+        .CLASS footer {
+            padding: 10px;
+            font-size: 11px;
+        }
+
+        .CLASS footer>ui-bind>div {
+            height: 16px;
+        }
+
+        .CLASS footer b {
+            float: right;
+        }
+    </style>
+    <header>
+        <i class="ICON"></i>NAME
+    </header>
+    <settings>
+        <div class="padding">
+            <div class="row m">
+                <div class="col-md-6">
+                    <ui-component name="input" path="?.port"
+                        config="placeholder:/dev/ttyS3;required:1">Port</ui-component>
+                </div>
+                <div class="col-md-6">
+                    <ui-component name="input" path="?.baudRate" config="type:number;placeholder:9600;required:1">Baud
+                        Rate</ui-component>
+                </div>
+            </div>
+            <div class="row m">
+                <div class="col-md-4">
+                    <ui-component name="input" path="?.dataBits" config="type:number;placeholder:8;required:1">Data
+                        Bits</ui-component>
+                </div>
+                <div class="col-md-4">
+                    <ui-component name="input" path="?.stopBits" config="type:number;placeholder:1;required:1">Stop
+                        Bits</ui-component>
+                </div>
+                <div class="col-md-4">
+                    <ui-component name="dropdown" path="?.parity"
+                        config="items:none,even,odd;required:1">Parity</ui-component>
+                </div>
+            </div>
+        </div>
+    </settings>
+    <script></script>
+
+</body>
+
+</html>

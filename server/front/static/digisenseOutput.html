@@ -1,0 +1,114 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script total>
+    exports.id = 'digisense_output_dashboard';
+    exports.name = 'Digisense output Dashboard';
+    exports.icon = 'ti ti-plug';
+    exports.author = 'Oussama Farhat';
+    exports.version = '1.0.3';
+    exports.group = 'Custom';
+    exports.npm = [''];
+    exports.flag = [''];
+    
+    exports.config = {
+        flowName:undefined,
+        isRegistered:false,
+        url: 'https://cloud.digisense.es',
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEyLCJ0ZW5hbnRJZCI6MTUsImVtYWlsIjoieWFzc2luZUBkaWdpc2Vuc2UuZXMiLCJyb2xlIjoiIiwicGVybWlzc2lvbnMiOltdLCJpYXQiOjE3NDcwOTI5NTMsImV4cCI6MTc3ODYyODk1M30.J_iq86wIQ92QFsiUzJpZEewbiw50EhSldx-_F9DaqvA',
+    };
+    
+    exports.inputs = [{ id: 'input', name: 'data' }];
+    
+    exports.outputs = [
+        { id: 'output', name: 'Output' },
+    ];
+    
+    exports.make = function(instance, config) {
+            instance.message = function($) {
+    
+                const data = $.data;
+    
+                const body = {
+                    name:data.name ,
+                    value:data.value,
+                    serial:config.flowName,
+                };
+    
+                // Add token if provided
+                let builder = RESTBuilder
+                    .POST(`${config.url}/api/v1/analytic/telemetrie`, body)
+                    .header('Content-Type', 'application/json')
+                    .auth(`Bearer ${config.token}`)
+                    .keepalive()
+                    .timeout(30000);
+            if (config.token) {
+                    builder.header('Authorization', 'Bearer ' + config.token);
+                }
+                builder.callback(function(err, response) {
+                    if (err) {
+                        $.send('output', err);
+                        return;
+                    }
+                    if (!response) {
+                        $.send('output', 'Empty response from server.');
+                        return;
+                    }
+    
+                    try {
+                        //const answer = 'test'
+                        $.send('output', response);
+                    } catch (e) {
+                        $.send('error', 'Invalid JSON response: ' + e.message);
+                    }
+                });
+            };
+    
+    };
+    </script>
+        </head>
+
+    <settings>
+        <div class="padding">
+            <div class="form-group">
+                <ui-component name="input" path="?.url" config="placeholder:https://cloud.digisense.es;required:1">
+                    API URL
+                </ui-component>
+            </div>
+            <div class="form-group">
+                <ui-component name="textarea" path="?.token" config="placeholder:1;">
+                    Bearer Token (JWT)
+                </ui-component>
+            </div>
+            <div class="form-group">
+                <ui-component name="input" path="?.flowName" config="placeholder:1">
+                    flow Name
+                </ui-component>
+            </div>
+        </div>
+    </settings>
+    
+    <script>
+    TOUCH(function(exports) {
+    
+        exports.settings = function() {
+            exports.config.tenantId = +window.location.pathname.split('/')[window.location.pathname.split('/').length -1]
+        };
+    
+        exports.configure = function(config) {
+            console.log("Current config:", config);
+        };
+    
+    });
+    </script>
+    
+    <body>
+        <header><i class="$ICON"></i> $NAME</header>
+        <footer class="footer">AI Platform</footer>
+    </body>
+    
+    <style>
+    .footer {
+        padding: 10px;
+        font-size: 12px;
+        color: #888;
+    }
+    </style>
+    </html>
