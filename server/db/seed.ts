@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import { broker, licence, subscriptionPlan, tenant, users } from './schema';
+import { broker, tenant, users } from './schema';
 import * as argon2 from 'argon2';
 import { v4 as uuidv4 } from 'uuid';
 import { eq } from 'drizzle-orm';
