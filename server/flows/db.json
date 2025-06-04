@@ -1,5 +1,17 @@
 [
 	{
+		"id": "digiSenseSeriaPort",
+		"group": "digiSenseSeriaPort",
+		"name": "digiSenseSeriaPort",
+		"url": "server.url/components/serialport.html",
+		"author": "FARHAT OUSSAMA",
+		"icon": "ti ti-totaljs",
+		"color": "",
+		"version": "1",
+		"kind": "",
+		"readme": "Digisense Serial Port Serial Communication"
+	},
+	{
 		"id": "digisenseAI",
 		"group": "digisenseAI",
 		"name": "digisenseAI",

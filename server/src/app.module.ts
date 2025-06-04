@@ -22,8 +22,6 @@ import { WorkflowModule } from './workflow/workflow.module';
 import { MachineModule } from './machine/machine.module';
 import { ConnectionModule } from './connection/machine.module';
 import { BrokerModule } from './broker/broker.module';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 @Module({
   imports: [
     ServeStaticModule.forRoot(
@@ -56,18 +54,14 @@ import { AppService } from './app.service';
     DeviceModule,
     AuthModule,
     UsersModule,
-    GwModule,
-    AnalyticModule,
     TokenModule,
     TenancyModule,
     PaymentModule,
     WorkflowModule,
-    MachineModule,
-    ConnectionModule,
     BrokerModule
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
