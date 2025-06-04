@@ -6,16 +6,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { AccessTokenStrategy, RefreshTokenStrategy } from './stragegies';
 import { ConfigModule } from '@nestjs/config';
 import { MailService } from './email.service';
-import { TenancyModule } from 'src/tenancy/tenancy.module';
-import { DeviceModule } from 'src/device/device.module';
-import { BrokerService } from 'src/broker/broker.service';
-import { GwModule } from 'src/gw/gw.module';
 
 @Global()
 @Module({
-  imports: [ConfigModule.forRoot(), JwtModule.register({}), UsersModule, TenancyModule, DeviceModule,GwModule],
+  imports: [ConfigModule.forRoot(), JwtModule.register({}), UsersModule],
   controllers: [AuthController],
-  providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy, MailService,BrokerService],
+  providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy, MailService],
   exports: [AuthService],
 })
 export class AuthModule { }

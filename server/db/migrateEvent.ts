@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import { broker, licence, event, tenant, users } from './schema';
+import { event, tenant, users } from './schema';
 import { eq } from 'drizzle-orm';
 
 

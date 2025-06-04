@@ -19,7 +19,7 @@ export class AuthController {
   @UseGuards(AccessTokenGuard)
   async handleMeRequest(@GetUser('sub') userId, @Req() req: Request) {
     const tenantSlug = req['tenantSlug'];
-    const user = await this.authService.getLoggedInUser(userId, tenantSlug);
+    const user = await this.authService.getLoggedInUser(userId);
 
     return plainToClass(GetLoggedInUserResponseDto, user);
   }
@@ -27,7 +27,7 @@ export class AuthController {
   @Post('login')
   async handleLoginRequest(@Body() data: LoginUserRequestDto, @Req() req: Request) {
     const tenantSlug = req['tenantSlug'];
-    return this.authService.loginUser(data, tenantSlug);
+    return this.authService.loginUser(data);
   }
   @Post('updateToken')
   async updateTenantToken(@Body() data: any) {
@@ -42,7 +42,7 @@ export class AuthController {
     console.log("verify")
     const tenantSlug = req['tenantSlug'];
     console.log(tenantSlug)
-    const result = await this.authService.verifyEmail(token, tenantSlug);
+    const result = await this.authService.verifyEmail(token);
     if (!result) {
       throw new NotFoundException('Invalid or expired token');
     }
@@ -51,11 +51,11 @@ export class AuthController {
   }
   @Post('verifyUser/:id')
   async verifyUserAdmin(@Param('id') id: number, @Req() req: Request, @Res() res) {
-    
+
     console.log("verify")
     const tenantSlug = req['tenantSlug'];
     console.log(tenantSlug)
-    const result = await this.authService.verifyEmailByGAdmin(id, tenantSlug);
+    const result = await this.authService.verifyEmailByGAdmin(id);
     if (!result) {
       throw new NotFoundException('Invalid User');
     }
@@ -64,36 +64,36 @@ export class AuthController {
   }
   @Post('forgotPassword')
   async forgetPassword(@Body() data: any, @Req() req: Request, @Res() res) {
-    
+
     console.log("forgetPassword")
     const tenantSlug = req['tenantSlug'];
-    return await this.authService.forgetPassword(data, tenantSlug);
-    
+    return await this.authService.forgetPassword(data);
+
   }
   @Post('resetPassword')
   async resetPassword(@Body() data: any, @Req() req: Request, @Res() res) {
-    
+
     const tenantSlug = req['tenantSlug'];
-    const result = await this.authService.resetPassword(data, tenantSlug);
+    const result = await this.authService.resetPassword(data);
     if (!result) {
       return res.redirect(process.env.FORGOT_PASSWORD_URL);
     }
 
     return res.redirect(process.env.FORGOT_PASSWORD_URL);
-    
+
   }
 
   @Post('register')
   async handleRegisterRequest(@Body() data: RegisterUserRequestDto, @Req() req: Request) {
     const tenantSlug = req['tenantSlug'];
-    return this.authService.registerUser(data, tenantSlug);
+    return this.authService.registerUser(data);
   }
 
   @UseGuards(AccessTokenGuard)
   @Delete('logout')
   async handleLogoutRequest(@GetUser('sub') userId, @Req() req: Request) {
     const tenantSlug = req['tenantSlug'];
-    await this.authService.logoutUser(userId, tenantSlug);
+    await this.authService.logoutUser(userId);
 
     return true;
   }

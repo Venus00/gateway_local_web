@@ -3,8 +3,7 @@ import { CreateNewUserDto, CreateUserDto, UpdateUserDto } from './users.dto';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../db/schema'
 import { eq, SQL } from 'drizzle-orm';
-import { tenant, users, userVerification, licence, resetPasswordToken } from '../../db/schema';
-import { TenancyService } from 'src/tenancy/tenancy.service';
+import { tenant, users, userVerification, resetPasswordToken } from '../../db/schema';
 import { v4 as uuidv4 } from 'uuid';
 import { validationEmail } from 'src/common/template-mail/validationEmail';
 import { MailService } from 'src/auth/email.service';
@@ -16,15 +15,10 @@ export class UsersService {
   private logger = new Logger(UsersService.name);
 
   constructor(
-    private tenancy: TenancyService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
     @Inject('DB_DEV') private readonly db: NodePgDatabase<typeof schema>) { }
 
-
-  async getDbConnection(slug: string) {
-    return await this.tenancy.getTenantConnection(slug);
-  }
   async createUser(data: CreateUserDto) {
     //createDefaulttenant
     return await this.db.insert(users).values({
@@ -60,9 +54,8 @@ export class UsersService {
     this.mailService.sendEmail(oauth, data.email, 'ValidationEmail', html);
   }
 
-  async updatePassword(email: string, password: string, tenantSLug: string) {
-    const dbConnection = await this.getDbConnection(tenantSLug)
-    return await dbConnection.update(users).set({
+  async updatePassword(email: string, password: string) {
+    return await this.db.update(users).set({
       password,
     }).where(eq(users.email, email))
       .returning()
@@ -85,43 +78,43 @@ export class UsersService {
       .then((res) => res[0] ?? null);
   }
 
-  async findUserById(userId: number, tenantSlug: string) {
-    const dbConnection = await this.getDbConnection(tenantSlug)
+  async findUserById(userId: number) {
 
-    return await dbConnection.query.users.findFirst({
+
+    return await this.db.query.users.findFirst({
       where: eq(users.id, userId),
     })
   }
-  async markAsVerified(userId: number, tenantSlug: string) {
-    const dbConnection = await this.getDbConnection(tenantSlug)
-    return await dbConnection.update(users).set({
+  async markAsVerified(userId: number) {
+
+    return await this.db.update(users).set({
       isVerified: true,
     }).where(eq(users.id, userId))
   }
 
-  async findByToken(token: string, tenantSlug: string) {
-    const dbConnection = await this.getDbConnection(tenantSlug)
-    return await dbConnection.query.userVerification.findFirst({
+  async findByToken(token: string) {
+
+    return await this.db.query.userVerification.findFirst({
       where: eq(userVerification.token, token),
     })
   }
-  async findByResetToken(token: string, tenantSlug: string) {
-    const dbConnection = await this.getDbConnection(tenantSlug)
-    return await dbConnection.query.resetPasswordToken.findFirst({
-      where: eq(resetPasswordToken.token, token), whith: {
+  async findByResetToken(token: string) {
+
+    return await this.db.query.resetPasswordToken.findFirst({
+      where: eq(resetPasswordToken.token, token), with: {
         users: true
       }
     })
   }
-  async findResetToken(token: string, tenantSlug: string) {
-    const dbConnection = await this.getDbConnection(tenantSlug)
-    return await dbConnection.query.resetPasswordToken.findFirst({
+  async findResetToken(token: string) {
+
+    return await this.db.query.resetPasswordToken.findFirst({
       where: eq(resetPasswordToken.token, token),
     })
   }
-  async updatePasswordToken(token: string, tenantSlug: string) {
-    const dbConnection = await this.getDbConnection(tenantSlug)
-    return await dbConnection.update(resetPasswordToken).set({
+  async updatePasswordToken(token: string) {
+
+    return await this.db.update(resetPasswordToken).set({
       used: true
     }).where(eq(resetPasswordToken.token, token))
   }
@@ -130,21 +123,21 @@ export class UsersService {
       where: eq(userVerification.userId, userId),
     })
   }
-  async updateUser(id: number, data: Partial<CreateUserDto>, tenantSlug: string) {
-    const dbConnection = await this.getDbConnection(tenantSlug)
-    return dbConnection.update(users).set({
+  async updateUser(id: number, data: Partial<CreateUserDto>) {
+
+    return this.db.update(users).set({
       ...data
     }).where(eq(users.id, id));
   }
-  async updateUserInfo(data: UpdateUserDto, tenantSlug: string) {
-    const dbConnection = await this.getDbConnection(tenantSlug)
-    return dbConnection.update(users).set({
+  async updateUserInfo(data: UpdateUserDto) {
+
+    return this.db.update(users).set({
       ...data
     }).where(eq(users.id, data.id));
   }
-  async getUserByEmail(email: string, tenantSlug: string) {
-    const dbConnection = await this.getDbConnection(tenantSlug)
-    const result = dbConnection.query.users.findFirst({
+  async getUserByEmail(email: string) {
+
+    const result = this.db.query.users.findFirst({
       where: (users, { eq }) => eq(users.email, email),
       with: {
         tenant: {
@@ -157,9 +150,9 @@ export class UsersService {
     return result;
   }
 
-  async getUserById(id: number, tenantSlug: string) {
-    const dbConnection = await this.getDbConnection(tenantSlug)
-    return dbConnection.query.users.findFirst({
+  async getUserById(id: number) {
+
+    return this.db.query.users.findFirst({
       where: (users, { eq }) => eq(users.id, id),
     });
   }
@@ -170,8 +163,8 @@ export class UsersService {
     });
   }
 
-  async deleteUser(id: number, tenantSlug: string) {
-    const dbConnection = await this.getDbConnection(tenantSlug)
-    return dbConnection.delete(users).where(eq(users.id, id));
+  async deleteUser(id: number) {
+
+    return this.db.delete(users).where(eq(users.id, id));
   }
 }

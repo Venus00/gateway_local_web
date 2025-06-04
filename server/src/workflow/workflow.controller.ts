@@ -16,7 +16,6 @@ import {
 } from '@nestjs/common';
 import { AccessTokenGuard } from 'src/common/guards/auth.guards';
 import { Permission, Role } from 'src/common/guards/role.enum';
-import { PermissionsGuard, Permissions } from 'src/common/guards/licencePermission.guard';
 import { Roles, RolesGuard } from 'src/common/guards/roles.guard';
 import { SocketGatway } from 'src/socket/socket.gatway';
 import { WorkflowService } from './workflow.service';
@@ -24,7 +23,7 @@ import { EditWorkflowDto } from './workflow.dto';
 import * as fs from 'fs';
 import path from 'path';
 @Controller('workflow')
-@UseGuards(AccessTokenGuard, RolesGuard, PermissionsGuard)
+@UseGuards(AccessTokenGuard, RolesGuard)
 export class WorkflowController {
   private DB_PATH = path.join(process.cwd(), './flows/db.json');
   private comonents: any[] = [];
@@ -41,11 +40,11 @@ export class WorkflowController {
 
   @Post('')
   @Roles(Role.Admin)
-  async createWorkflow(@Body() data, @Req() req) {
-    const tenantSlug = req['tenantSlug'];
+  async createWorkflow(@Body() data) {
+
     console.log('create workflow : ', JSON.stringify(data));
     try {
-      return await this.workflow.createWorkflow(data, tenantSlug);
+      return await this.workflow.createWorkflow(data);
     } catch (error) {
       console.log(error);
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
@@ -93,16 +92,16 @@ export class WorkflowController {
   }
 
   @Put('')
-  async update(@Body() data: EditWorkflowDto, @Req() req) {
-    const tenantSlug = req['tenantSlug'];
+  async update(@Body() data: EditWorkflowDto) {
 
-    return await this.workflow.updateworkflow(data, tenantSlug);
+
+    return await this.workflow.updateworkflow(data);
   }
 
   @Delete(':id')
   @Roles(Role.Admin)
-  async deleteWorkflow(@Param('id') id: string, @Req() req) {
-    const tenantSlug = req['tenantSlug'];
+  async deleteWorkflow(@Param('id') id: string) {
+
     const workflowId = parseInt(id, 10);
 
     if (isNaN(workflowId)) {
@@ -111,7 +110,7 @@ export class WorkflowController {
 
     console.log('delete workflow id: ', workflowId);
     try {
-      return await this.workflow.deleteWorkflow(workflowId, tenantSlug);
+      return await this.workflow.deleteWorkflow(workflowId);
     } catch (error) {
       console.log(error);
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);

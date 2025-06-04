@@ -1,0 +1,1 @@
+{"version":3,"file":"workflow.module.js","sourceRoot":"","sources":["../../../src/workflow/workflow.module.ts"],"names":[],"mappings":";;;;;;;;;AACA,2CAAuC;AAGvC,yDAAoD;AACpD,+DAA0D;AASnD,IAAM,cAAc,GAApB,MAAM,cAAc;CAAI,CAAA;AAAlB,wCAAc;yBAAd,cAAc;IAP1B,IAAA,eAAM,EAAC;QACN,OAAO,EAAE,EAAE;QACX,SAAS,EAAE,CAAC,kCAAe,CAAC;QAC5B,WAAW,EAAE;YACX,wCAAkB;SACnB;KACF,CAAC;GACW,cAAc,CAAI"}

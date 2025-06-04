@@ -8,37 +8,33 @@ import { CreateWorkflowDto, EditWorkflowDto } from './workflow.dto';
 import moment from 'moment';
 import { serial } from 'drizzle-orm/mysql-core';
 import { SocketGatway } from 'src/socket/socket.gatway';
-import { TenancyService } from 'src/tenancy/tenancy.service';
 import { apiClient } from './api.client';
 import { datacatalog } from 'googleapis/build/src/apis/datacatalog';
 @Injectable()
 export class WorkflowService implements OnModuleInit {
   private logger = new Logger(WorkflowService.name);
   constructor(
-    private tenant: TenancyService,
-
     @Inject('DB_DEV') private readonly db: NodePgDatabase<typeof schema>) { }
   async onModuleInit() { }
 
-  async deleteWorkflow(workflowId: number, tenantSlug: string) {
-    const tenantDb = await this.tenant.getTenantConnection(tenantSlug);
-  
-    const existingWorkflow = await tenantDb
+  async deleteWorkflow(workflowId: number) {
+
+    const existingWorkflow = await this.db
       .select()
       .from(workflow)
       .where(eq(workflow.id, workflowId))
       .limit(1);
-  
+
     if (existingWorkflow.length === 0) {
       throw new HttpException('Workflow not found', HttpStatus.NOT_FOUND);
     }
-  
-    await tenantDb
+
+    await this.db
       .delete(workflow)
       .where(eq(workflow.id, workflowId));
-  
 
-  
+
+
     return {
       message: 'Workflow deleted successfully',
       id: workflowId
@@ -56,11 +52,10 @@ export class WorkflowService implements OnModuleInit {
       throw error;
     }
   }
-  async createWorkflow(payload: CreateWorkflowDto, tenantSlug: string) {
+  async createWorkflow(payload: CreateWorkflowDto) {
     const { tenantId, data } = payload;
-    const tenantDb = await this.tenant.getTenantConnection(tenantSlug);
 
-    const [flow] = await tenantDb.insert(workflow).values({
+    const [flow] = await this.db.insert(workflow).values({
       tenantId,
       ...data
     }).returning({ id: workflow.tenantId });
@@ -75,11 +70,10 @@ export class WorkflowService implements OnModuleInit {
 
   }
 
-  async updateworkflow(data: EditWorkflowDto, tenantSlug: string) {
-    const tenantDb = await this.tenant.getTenantConnection(tenantSlug);
+  async updateworkflow(data: EditWorkflowDto) {
     try {
       if (data.name) {
-        await tenantDb.update(workflow).set(data).where(eq(workflow.id, data.id));
+        await this.db.update(workflow).set(data).where(eq(workflow.id, data.id));
       } else {
         throw new Error('Workflow type name is required');
       }

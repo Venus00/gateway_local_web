@@ -20,13 +20,12 @@ import { TenantService } from './tenant.service';
 import { CreateTenantDto, EditTenantDto, TenantReponseDto } from './tenant.dto';
 import { Role } from 'src/common/guards/role.enum';
 import { Roles, RolesGuard } from 'src/common/guards/roles.guard';
-import { PermissionsGuard } from 'src/common/guards/licencePermission.guard';
 import { UserResponseDto } from './users.dto';
 
 @Controller('tenant')
-@UseGuards(AccessTokenGuard, RolesGuard, PermissionsGuard)
+@UseGuards(AccessTokenGuard, RolesGuard)
 export class TenantController {
-  constructor(private readonly tenantService: TenantService) {}
+  constructor(private readonly tenantService: TenantService) { }
 
   @Get()
   @Roles(Role.GAdmin)
@@ -37,8 +36,8 @@ export class TenantController {
 
   @Get('dashboard')
   async handleGetLayout(@Query() query: { tenantId: number }) {
-    console.log("tenantId",query.tenantId );
-    
+    console.log("tenantId", query.tenantId);
+
     const result = await this.tenantService.getTenantById(query.tenantId);
     return result;
   }
@@ -46,25 +45,9 @@ export class TenantController {
   async deleteDashboard(@Param('id') id: number) {
     return await this.tenantService.deleteGlobalDashboard(id);
   }
-  @Get('subcsriptionPlansById')
-  async subcsriptionPlans(@Query() query: { id:number }) {
-    return await this.tenantService.getSubcsriptionPlansByID(query.id);
-  }
 
 
-  @Get('subcsriptionPlans')
-  async handleGetAllSubcsriptionPlans() {
-    return await this.tenantService.getSubcsriptionPlans();
-  }
 
-  // @Put('entity')
-  // async handleUpdateTenantEntity(
-  //   @Body() data: { id: number; entities: number },
-  // ) {
-  //   return await this.tenantService.updateTenant(data.id, {
-  //     entities: data.entities,
-  //   });
-  // }
   @Put('dashboard')
   async handleSetLayout(
     @Body() data: { tenantId: number; widget: string; layout: string },
@@ -77,17 +60,17 @@ export class TenantController {
   }
   @Roles(Role.GAdmin)
   @Post()
-  async handleCreateTenant(@Body() data: CreateTenantDto,@Res() req) {
+  async handleCreateTenant(@Body() data: CreateTenantDto, @Res() req) {
     const tenantSlug = req['tenantSlug'];
 
-    return await this.tenantService.createTenant(data,tenantSlug);
+    return await this.tenantService.createTenant(data, tenantSlug);
   }
 
   @Put()
   async handleUpdateTenant(@Body() data: EditTenantDto) {
     return await this.tenantService.updateTenant(data);
   }
-@Delete(':id')
+  @Delete(':id')
   async handleDeleteUser(@Req() req: Request, @Param('id', ParseIntPipe) id: number) {
     const slug = req['tenantSlug'];
     if (!slug) throw new BadRequestException('Tenant DB connection not found');
@@ -95,7 +78,7 @@ export class TenantController {
     const exists = await this.tenantService.getTenantById(id);
     if (!exists) throw new BadRequestException('Tenant does not exist');
 
-    const user = await this.tenantService.deleteTenant(id,slug);
+    const user = await this.tenantService.deleteTenant(id, slug);
     return plainToInstance(UserResponseDto, user);
   }
 

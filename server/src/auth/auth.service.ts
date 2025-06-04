@@ -13,14 +13,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { forgetPasswordEmail } from "src/common/template-mail/forgotPasswordEmail";
 import { PasswordUpdatedEmail } from "src/common/template-mail/PasswordUpdatedEmail";
 import { AccountVerified } from "src/common/template-mail/AccountVerified";
-import { BrokerService } from "src/broker/broker.service";
 
 @Injectable()
 export class AuthService {
   private logger = new Logger(AuthService.name);
 
   constructor(
-    private readonly brokerService: BrokerService,
     private readonly userService: UsersService,
     private readonly tenantService: TenantService,
     private readonly jwtService: JwtService,
@@ -29,14 +27,14 @@ export class AuthService {
   ) { }
 
   // Fetch logged in user for a specific tenant
-  async getLoggedInUser(userId: number, tenantSlug: string) {
-    return this.userService.getUserById(userId, tenantSlug);
+  async getLoggedInUser(userId: number) {
+    return this.userService.getUserById(userId);
   }
 
-  async loginUser(data: LoginUserRequestDto, tenantSlug: string) {
+  async loginUser(data: LoginUserRequestDto) {
     if (!data.email || !data.password)
       throw new BadRequestException('Email or password not provided');
-    const user = await this.userService.getUserByEmail(data.email, tenantSlug);
+    const user = await this.userService.getUserByEmail(data.email);
     if (!user) throw new UnauthorizedException('Invalid Credentials');
     if (!user.password || !user.email)
       throw new UnauthorizedException('Invalid Credentials');
@@ -56,7 +54,7 @@ export class AuthService {
         permissions: [],
       });
 
-      await this.updateRefreshToken(user.id, tokens.refreshToken, tenantSlug);
+      await this.updateRefreshToken(user.id, tokens.refreshToken);
 
       return {
         ...plainToClass(GetLoggedInUserResponseDto, user),
@@ -68,26 +66,26 @@ export class AuthService {
   }
 
   // Email verification logic for a specific tenant
-  async verifyEmail(token: string, tenantSlug: string) {
-    const user = await this.userService.findByToken(token, tenantSlug);
+  async verifyEmail(token: string) {
+    const user = await this.userService.findByToken(token);
     if (!user?.userId) throw new Error('Invalid token');
 
-    const userRow = await this.userService.findUserById(user.userId, tenantSlug);
+    const userRow = await this.userService.findUserById(user.userId);
     if (!userRow) throw new Error('Invalid User');
     if (userRow.isVerified) {
       throw new Error('Already Verified');
     } else {
-      await this.userService.markAsVerified(userRow.id, tenantSlug);
+      await this.userService.markAsVerified(userRow.id);
       return 'Email verified successfully';
     }
   }
-  async verifyEmailByGAdmin(id: number, tenantSlug: string) {
-    const userRow = await this.userService.findUserById(id, tenantSlug);
+  async verifyEmailByGAdmin(id: number) {
+    const userRow = await this.userService.findUserById(id);
     if (!userRow) throw new Error('Invalid User');
     if (userRow.isVerified) {
       throw new Error('Already Verified');
     } else {
-      const verifiedUser = await this.userService.markAsVerified(userRow.id, tenantSlug);
+      const verifiedUser = await this.userService.markAsVerified(userRow.id);
       if (verifiedUser) {
         console.log(verifiedUser, 'verifiedUser');
 
@@ -105,8 +103,8 @@ export class AuthService {
       return true;
     }
   }
-  async forgetPassword(data: any, tenantSlug: string) {
-    const userRow = await this.userService.getUserByEmail(data.email, tenantSlug);
+  async forgetPassword(data: any) {
+    const userRow = await this.userService.getUserByEmail(data.email);
     if (!userRow) throw new Error('Invalid User');
     const resetToken = await this.generatePasswordResetToken(userRow.id);
 
@@ -133,11 +131,11 @@ export class AuthService {
     );
   }
 
-  async registerUser(data: RegisterUserRequestDto, tenantSlug: string) {
+  async registerUser(data: RegisterUserRequestDto) {
     if (!data.email || !data.password || !data.tenantName)
       throw new BadRequestException('Email, password or workspace name not provided');
 
-    const userExists = await this.userService.getUserByEmail(data.email, tenantSlug);
+    const userExists = await this.userService.getUserByEmail(data.email);
     if (userExists) throw new BadRequestException('Email already exists');
     const tenantexists = await this.tenantService.getTenantByName(data.tenantName);
     if (tenantexists) throw new BadRequestException('Workspace name already in use');
@@ -147,94 +145,49 @@ export class AuthService {
       data.password,
       this.configService.get<string>('APP_SECRET') || '',
     );
-
     let newUser;
-    if (!data.tenantId) {
-      const tenant = await this.tenantService.createUserTenant({
-        name: data.tenantName,
-      });
-      if (tenant) {
-        const broker = await this.brokerService.addBroker({
-          tenantId: +tenant?.id,
-          clientId: `local_broker_${tenant?.id}`,
-          topic: 'nxt/devices/+/data',
-          ip: process.env.BROKER_URL || '154.144.229.22',
-          port: 1883,
-          name: `local_broker_${tenant?.id}`,
-          host: process.env.BROKER_URL || '154.144.229.22',
-          username: process.env.MQTT_WORKER_USERNAME || 'digisense_worker',
-          password: process.env.MQTT_WORKER_PASSWORD || 'digisense_worker',
-          hide: true,
-        }, tenantSlug)
-        newUser = await this.userService.createUser({
-          ...data,
-          password: hashedPassword,
-          tenantId: tenant.id,
-          role: 'admin',
-        });
-        // Set tenant Admin
-        await this.tenantService.updateTenant({
-          id: tenant.id,
-          adminId: newUser.id,
-        });
-      }
-    } else {
-      newUser = await this.userService.createUser({
-        ...data,
-        password: hashedPassword,
-        tenantId: data.tenantId,
-        role: 'user',
-      });
-      const token = uuidv4();
-      const userVerification = await this.userService.createUserVerification(
-        token,
-        newUser.id,
-      );
+    newUser = await this.userService.createUser({
+      ...data,
+      password: hashedPassword,
+      tenantId: data.tenantId,
+      role: 'user',
+    });
+    const token = uuidv4();
+    const userVerification = await this.userService.createUserVerification(
+      token,
+      newUser.id,
+    );
 
-      const oauth = await this.mailService.authorize();
-      const html = validationEmail.replaceAll(
-        '[Activation Link]',
-        `${process.env.SERVER_PRIMARY_DNS}/api/v1/auth/verify?token=${token}`,
-      );
+    const oauth = await this.mailService.authorize();
+    const html = validationEmail.replaceAll(
+      '[Activation Link]',
+      `${process.env.SERVER_PRIMARY_DNS}/api/v1/auth/verify?token=${token}`,
+    );
 
-      this.mailService.sendEmail(oauth, data.email, 'ValidationEmail', html);
-    }
+    this.mailService.sendEmail(oauth, data.email, 'ValidationEmail', html);
 
-    // const token = uuidv4();
-    // const userVerification = await this.userService.createUserVerification(
-    //   token,
-    //   newUser.id,
-    // );
-
-    // const oauth = await this.mailService.authorize();
-    // const html = validationEmail.replaceAll(
-    //   '[Activation Link]',
-    //   `${process.env.SERVER_PRIMARY_DNS}/api/v1/auth/verify?token=${token}`,
-    // );
-
-    // this.mailService.sendEmail( data.email, 'ValidationEmail', html);
     return newUser;
   }
-  async resetPassword(data: any, tenantSlug: string) {
+  async resetPassword(data: any) {
     if (!data.password || !data.token)
       throw new BadRequestException('password or token not provided');
-    const token = await this.userService.findResetToken(data.token, tenantSlug);
-    if (token.used) { throw new BadRequestException('token already used'); }
-    if (this.isTokenExpired(token.expiresAt)) {
+    const token = await this.userService.findResetToken(data.token);
+    if (token?.used) { throw new BadRequestException('token already used'); }
+    if (this.isTokenExpired(token?.expiresAt || '')) {
       throw new BadRequestException('Token has expired');
     }
-    const userToken = await this.userService.findByResetToken(data.token, tenantSlug);
+    const userToken = await this.userService.findByResetToken(data.token);
     if (!userToken?.userId) throw new Error('Invalid token');
-    const user = await this.userService.getUserById(userToken?.userId, tenantSlug);
+    const user = await this.userService.getUserById(userToken?.userId);
     const hashedPassword = await hashGenerate(
       data.password,
       this.configService.get<string>('APP_SECRET') || '',
     );
 
-    const updatedUser = await this.userService.updatePassword(user?.email, hashedPassword, tenantSlug);
+    const updatedUser = await this.userService.updatePassword(user?.email, hashedPassword);
 
     if (updatedUser) {
-      await this.userService.updatePasswordToken(data.token, tenantSlug);
+      await this.userService.updatePasswordToken(data.token);
       const oauth = await this.mailService.authorize();
       const html = PasswordUpdatedEmail
       this.mailService.sendEmail(oauth, user?.email, 'Password Updated', html);
@@ -250,12 +203,12 @@ export class AuthService {
     return now > expiryDate;
   }
 
-  async logoutUser(userId: number, tenantSlug) {
-    return this.userService.updateUser(userId, { refreshToken: undefined }, tenantSlug);
+  async logoutUser(userId: number) {
+    return this.userService.updateUser(userId, { refreshToken: undefined });
   }
 
-  async refreshTokens(userId: number, refreshToken: string, tenantSlug: string) {
-    const user = await this.userService.getUserById(userId, tenantSlug);
+  async refreshTokens(userId: number, refreshToken: string) {
+    const user = await this.userService.getUserById(userId);
     if (!user || !user.refreshToken)
       throw new ForbiddenException('Access Denied');
 
@@ -274,7 +227,7 @@ export class AuthService {
       role: user.role,
       permissions: [],
     });
-    await this.updateRefreshToken(user.id, tokens.refreshToken, tenantSlug);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
     return tokens;
   }
 
@@ -296,14 +249,14 @@ export class AuthService {
     };
   }
 
-  async updateRefreshToken(userId: number, refreshToken: string, tenantSlug: string) {
+  async updateRefreshToken(userId: number, refreshToken: string) {
     const hashedRefreshToken = await hashGenerate(
       refreshToken,
       this.configService.get<string>('APP_SECRET') || '',
     );
     await this.userService.updateUser(userId, {
       refreshToken: hashedRefreshToken,
-    }, tenantSlug
+    }
     );
   }
   async updateTenantToken(token: any) {
