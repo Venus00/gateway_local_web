@@ -10,18 +10,10 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { DrizzlePGModule } from '@knaadh/nestjs-drizzle-pg';
 import * as schema from '../db/schema'
-import { GwModule } from './gw/gw.module';
-import { AiModule } from './ai/ai.module';
-import { AnalyticModule } from './analytics/analytic.module';
 import { TokenModule } from './tokens/token.module';
-import { TenancyModule } from './tenancy/tenancy.module';
 import { TenantMiddleware } from './tenancy/tenant.middleware';
-import { PaymentModule } from './payment/payment.module';
 import { SocketModule } from './socket/socket.module';
 import { WorkflowModule } from './workflow/workflow.module';
-import { MachineModule } from './machine/machine.module';
-import { ConnectionModule } from './connection/machine.module';
-import { BrokerModule } from './broker/broker.module';
 @Module({
   imports: [
     ServeStaticModule.forRoot(
@@ -55,10 +47,10 @@ import { BrokerModule } from './broker/broker.module';
     AuthModule,
     UsersModule,
     TokenModule,
-    TenancyModule,
-    PaymentModule,
+    // TenancyModule,
+    // PaymentModule,
     WorkflowModule,
-    BrokerModule
+    // BrokerModule
   ],
   controllers: [],
   providers: [],
