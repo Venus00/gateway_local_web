@@ -65,7 +65,7 @@ export default function ComponentDownloadDialog({
     const wsBase = `${window.location.hostname}:8002` || "ws://localhost:8002"
     console.log(`${wsBase}/flows/${flowId}/?openplatform=`, "reconnect")
 
-    const websocket = new WebSocket(`${wsBase}/flows/${flowId}/?openplatform=`)
+    const websocket = new WebSocket(`ws://${wsBase}/flows/${flowId}/?openplatform=`)
 
     websocket.onopen = () => {
       console.log("WebSocket connected for component download")

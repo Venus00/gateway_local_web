@@ -145,7 +145,7 @@ export default function Editor() {
     const flowId = (params.id as string) || "default-flow"
     const wsBase = `${window.location.hostname}:8002`;
     //const wsBase = `192.168.10.80:8002`;
-    const wsUrl = `ws:${wsBase}/flows/${flowId}/?openplatform=`;
+    const wsUrl = `ws://${wsBase}/flows/${flowId}/?openplatform=`;
 
     return (
         <WebSocketProvider url={wsUrl}>
