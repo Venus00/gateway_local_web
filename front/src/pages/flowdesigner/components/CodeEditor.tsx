@@ -158,7 +158,7 @@ var total = 'Hello world!';
     console.log("socket yrl", import.meta.env.VITE_FLOWS_SOCKET)
     //const wsBase = import.meta.env.VITE_FLOWS_SOCKET || "ws://localhost:8002"
     const wsBase = `${window.location.hostname}:8002` || "ws://localhost:8002"
-    const websocket = new WebSocket(`${wsBase}/flows/${flowId}/?openplatform=`)
+    const websocket = new WebSocket(`ws://${wsBase}/flows/${flowId}/?openplatform=`)
 
 
     websocket.onopen = () => {
