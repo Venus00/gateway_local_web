@@ -136,11 +136,7 @@ export class UsersService {
     const result = this.db.query.users.findFirst({
       where: (users, { eq }) => eq(users.email, email),
       with: {
-        tenant: {
-          with: {
-            licence: true
-          }
-        }
+        tenant: true
       }
     });
     return result;

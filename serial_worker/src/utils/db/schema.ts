@@ -103,10 +103,6 @@ export const broker = pgTable("Broker", {
     .notNull()
     .references(() => tenant.id, { onDelete: "cascade" }),
 });
-export const brokerRelations = relations(broker, ({ one, many }) => ({
-  device: many(device),
-  tenant: one(tenant, { fields: [broker.tenantId], references: [tenant.id] }),
-}));
 
 export const users = pgTable("Users", {
   id: serial("id").notNull().primaryKey(),
