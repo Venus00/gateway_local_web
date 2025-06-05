@@ -71,14 +71,12 @@ export class TenantController {
     return await this.tenantService.updateTenant(data);
   }
   @Delete(':id')
-  async handleDeleteUser(@Req() req: Request, @Param('id', ParseIntPipe) id: number) {
-    const slug = req['tenantSlug'];
-    if (!slug) throw new BadRequestException('Tenant DB connection not found');
+  async handleDeleteUser(@Param('id', ParseIntPipe) id: number) {
 
     const exists = await this.tenantService.getTenantById(id);
     if (!exists) throw new BadRequestException('Tenant does not exist');
 
-    const user = await this.tenantService.deleteTenant(id, slug);
+    const user = await this.tenantService.deleteTenant(id);
     return plainToInstance(UserResponseDto, user);
   }
 

@@ -122,7 +122,7 @@ export class TenantService {
 
     }
   }
-  async deleteTenant(id: number, tenantSlug: string) {
+  async deleteTenant(id: number) {
 
     return this.db.delete(tenant).where(eq(tenant.id, id));
   }
