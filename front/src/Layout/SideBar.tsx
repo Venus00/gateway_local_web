@@ -104,11 +104,6 @@ const createNavItems = (): NavItem[] => [
   //   ],
   // },
   {
-    titleKey: "nav.facturation",
-    href: "/facturation",
-    icon: <CircleDollarSign className="w-5 h-5" />,
-  },
-  {
     titleKey: "nav.Users",
     href: "/settings/users",
     icon: <Users className="w-5 h-5" />,
