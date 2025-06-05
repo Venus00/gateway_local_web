@@ -31,8 +31,8 @@ export class WorkflowController {
     private workflow: WorkflowService) {
 
     fs.readFile(this.DB_PATH, (err, json) => {
-      let obj = JSON.parse(json.toString().replaceAll('server.url', process.env.SERVER_PRIMARY_DNS || ''));
-      this.comonents = obj;
+      //let obj = JSON.parse(json.toString().replaceAll('server.url', process.env.SERVER_PRIMARY_DNS || ''));
+      this.comonents = JSON.parse(json.toString());
     }) as any
 
   }

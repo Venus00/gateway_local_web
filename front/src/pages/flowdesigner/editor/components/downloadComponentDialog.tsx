@@ -126,7 +126,8 @@ export default function ComponentDownloadDialog({
           }
         })
         console.log("rerzerezrzerrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", response.data)
-        const data: Component[] = response.data
+        const data: Component[] = response.data.replaceAll('server.url', window.location.hostname || '');
+
         setComponents(data)
         setFilteredComponents(data)
 
@@ -236,7 +237,7 @@ export default function ComponentDownloadDialog({
             Browse and install components from the Digisense repository
           </DialogDescription>
         </DialogHeader>
-    
+
         <div className="grid grid-cols-1 gap-4 my-4">
           <div className="flex items-center gap-2 flex-col sm:flex-row">
             <div className="relative flex-grow">
@@ -253,7 +254,7 @@ export default function ComponentDownloadDialog({
             </div>
           </div>
         </div>
-    
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow overflow-hidden">
           <ScrollArea className="h-[400px] md:col-span-2 border-2 border-gray-300 dark:border-gray-600 rounded-md">
             {loading ? (
@@ -269,11 +270,10 @@ export default function ComponentDownloadDialog({
                 {filteredComponents.map((component) => (
                   <Card
                     key={component.id}
-                    className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                      selectedComponent?.id === component.id
-                        ? "border-2 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/50"
-                        : "border-2 border-gray-300 dark:border-gray-600"
-                    }`}
+                    className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${selectedComponent?.id === component.id
+                      ? "border-2 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/50"
+                      : "border-2 border-gray-300 dark:border-gray-600"
+                      }`}
                     onClick={() => handleComponentSelect(component)}
                   >
                     <CardHeader className="p-3">
@@ -295,7 +295,7 @@ export default function ComponentDownloadDialog({
               </div>
             )}
           </ScrollArea>
-    
+
           <div className="md:col-span-1">
             {selectedComponent ? (
               <Card className="h-full flex flex-col border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
@@ -335,25 +335,25 @@ export default function ComponentDownloadDialog({
                   </ScrollArea>
                 </CardContent>
                 <div className="p-3 border-t mt-auto border-gray-300 dark:border-gray-600">
-                    <Button
-                      variant="default"
-                      className="w-full bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium"
-                      onClick={handleInstallComponent}
-                      disabled={installing}
-                    >
-                      {installing ? (
-                        <>
-                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-b-transparent"></div>
-                          Installing...
-                        </>
-                      ) : (
-                        <>
-                          <Download className="mr-2 h-4 w-4" />
-                          Install Component
-                        </>
-                      )}
-                    </Button>
-                   
+                  <Button
+                    variant="default"
+                    className="w-full bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium"
+                    onClick={handleInstallComponent}
+                    disabled={installing}
+                  >
+                    {installing ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-b-transparent"></div>
+                        Installing...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 h-4 w-4" />
+                        Install Component
+                      </>
+                    )}
+                  </Button>
+
                 </div>
               </Card>
             ) : (
@@ -366,7 +366,7 @@ export default function ComponentDownloadDialog({
             )}
           </div>
         </div>
-    
+
         <DialogFooter className="mt-4 border-t pt-4 border-gray-300 dark:border-gray-600">
           <Button
             variant="outline"
@@ -378,6 +378,6 @@ export default function ComponentDownloadDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-      )
+  )
 }
 
