@@ -62,7 +62,7 @@ export default function ComponentDownloadDialog({
   }
 
   useEffect(() => {
-    const wsBase = `ws://${window.location.hostname}:4000` || "ws://localhost:8002"
+    const wsBase = `${window.location.hostname}:8002` || "ws://localhost:8002"
     console.log(`${wsBase}/flows/${flowId}/?openplatform=`, "reconnect")
 
     const websocket = new WebSocket(`${wsBase}/flows/${flowId}/?openplatform=`)
