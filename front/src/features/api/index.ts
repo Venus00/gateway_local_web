@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // const BASE_URL = `${import.meta.env.VITE_SERVER_URL}/api/v1`;
-//const BASE_URL = `http://${window.location.hostname}:4000/api/v1`;
-const BASE_URL = `${import.meta.env.VITE_SERVER_URL}/api/v1`;
+const BASE_URL = `http://${window.location.hostname}:4000/api/v1`;
+//const BASE_URL = `${import.meta.env.VITE_SERVER_URL}/api/v1`;
 
 
 

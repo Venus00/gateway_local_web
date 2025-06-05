@@ -143,8 +143,8 @@ type FlowDesignData = {
 export default function Editor() {
     const params = useParams()
     const flowId = (params.id as string) || "default-flow"
-    // const wsBase = `${window.location.hostname}:8002`;
-    const wsBase = `192.168.10.80:8002`;
+    const wsBase = `${window.location.hostname}:8002`;
+    //const wsBase = `192.168.10.80:8002`;
     const wsUrl = `ws:${wsBase}/flows/${flowId}/?openplatform=`;
 
     return (

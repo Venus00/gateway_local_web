@@ -1,3 +1,94 @@
 {
-	"variables": {}
+	"variables": {},
+	"f1o8gl001oi51d": {
+		"paused": false,
+		"id": "f1o8gl001oi51d",
+		"reference": "",
+		"author": "",
+		"group": "",
+		"icon": "fas fa-heart",
+		"color": "",
+		"version": "",
+		"readme": "",
+		"url": "1",
+		"name": "tt",
+		"components": {
+			"print": "<script total>\n\n\texports.id = 'print';\n\texports.name = 'Print';\n\texports.group = 'Common';\n\texports.version = '7';\n\texports.icon = 'ti ti-print';\n\texports.author = 'Total.js';\n\texports.config = { repo: false, data: true, text: false };\n\texports.inputs = [{ id: 'input', name: 'Input' }];\n\n\texports.make = function(instance, config) {\n\n\t\tfunction serializer(key, value) {\n\t\t\treturn value && value.type === 'Buffer' && value.data ? ('<Buffer ' + value.data.splice(0, 10).map(n => n.toString(16).padLeft(2, '0')).join('') + '...') : value;\n\t\t}\n\n\t\tinstance.message = function($) {\n\n\t\t\tvar data = $.data;\n\n\t\t\tif (config.data !== false) {\n\t\t\t\tif (data instanceof Buffer)\n\t\t\t\t\tdata = '<Buffer ' + data.toString('hex').substring(0, 10) + '...';\n\t\t\t}\n\n\t\t\tvar count = 0;\n\n\t\t\tfor (var key in config) {\n\t\t\t\tif (config[key])\n\t\t\t\t\tcount++;\n\t\t\t}\n\n\t\t\tvar output = count > 1 ? {} : null;\n\n\t\t\tif (config.repo) {\n\t\t\t\tif (output)\n\t\t\t\t\toutput.repo = $.repo;\n\t\t\t\telse\n\t\t\t\t\toutput = $.repository;\n\t\t\t}\n\n\t\t\tif (config.data) {\n\t\t\t\tif (output)\n\t\t\t\t\toutput.data = $.data;\n\t\t\t\telse\n\t\t\t\t\toutput = $.data;\n\t\t\t}\n\n\t\t\tif (output) {\n\t\t\t\toutput = JSON.stringify(output, serializer);\n\t\t\t\tinstance.status(output, 200);\n\t\t\t}\n\n\t\t\t$.destroy();\n\t\t};\n\n\t\tinstance.trigger = function() {\n\t\t\tinstance.status('');\n\t\t};\n\n\t};\n\n</script>\n\n<style>\n\t.CLASS footer > ui-bind { margin: 10px; }\n\t.CLASS pre { font-size: 10px; margin: 0; padding: 5px; background-color: #F0F0F0; border-radius: var(--radius); }\n\t.CLASS .json { white-space: pre; }\n\t.CLASS .noscrollbar { max-height: 250px; }\n\t.CLASS .readme { position: absolute; position: absolute; font-size: 11px; right: 5px; margin-top: -5px; cursor: pointer; }\n\t.ui-dark .CLASS pre { background-color: #404040; tab-size: 2; }\n</style>\n\n<readme>\nThe component prints incoming data in a JSON format.\n</readme>\n\n<settings>\n\t<div class=\"padding\">\n\t\t<ui-component name=\"input\" path=\"?.repo\" config=\"type:checkbox\">Shows repository</ui-component>\n\t\t<ui-component name=\"input\" path=\"?.data\" config=\"type:checkbox\">Shows data</ui-component>\n\t</div>\n</settings>\n\n<body>\n\t<header>\n\t\t<button class=\"exec button\" data-exec=\"FUNC.trigger\">Clear</button>\n\t\t<i class=\"$ICON\"></i>$NAME\n\t</header>\n\t<footer>\n\t\t<ui-bind path=\"!$STATUS\" config=\"html pre:debugprinter(value);show\" class=\"hidden selectable block\">\n\t\t\t<span class=\"readme\" title=\"Open in new window\"><i class=\"ti ti-window\"></i></span>\n\t\t\t<div class=\"noscrollbar mt5\">\n\t\t\t\t<pre class=\"json\"></pre>\n\t\t\t</div>\n\t\t</ui-bind>\n\t</footer>\n</body>\n\n<script>\n\n\tW.debugprinter = function(value) {\n\t\tif (value) {\n\t\t\tvalue = JSON.parse(value);\n\t\t\tif (typeof(value) === 'string')\n\t\t\t\treturn Thelpers.encode(value);\n\t\t\telse\n\t\t\t\treturn Thelpers.jsonformat(JSON.stringify(value, null, '\\t'));\n\t\t} else\n\t\t\treturn '';\n\t};\n\n\tTOUCH(function(exports, reinit) {\n\n\t\tif (reinit)\n\t\t\treturn;\n\n\t\tvar laststatus;\n\n\t\texports.status = function(status, isinit) {\n\t\t\tlaststatus = status;\n\t\t};\n\n\t\texports.element.on('click', '.readme', function() {\n\t\t\tvar status = laststatus ? JSON.parse(laststatus) : null;\n\n\t\t\tif (status != null) {\n\t\t\t\tif (typeof(status) !== 'string')\n\t\t\t\t\tstatus = JSON.stringify(status, null, '  ');\n\t\t\t} else\n\t\t\t\tstatus = '';\n\n\t\t\tFUNC.readme('Debug', '```json\\n' + status + '\\n```');\n\t\t});\n\n\t});\n</script>",
+			"digiSenseSeriaPort": "<html>\n\n<head>\n    <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n    <script total>\n\n        exports.id = 'serialport';\n        exports.name = 'SerialPort';\n        exports.group = 'Digisense';\n        exports.author = 'Digisense'\n        exports.icon = 'ti ti-totaljs';\n        exports.version = '3';\n        exports.config = { port: '/dev/ttyS3', baudRate: 9600, dataBits: 8, stopBits: 1, parity: 'none' };\n        exports.inputs = [];\n        exports.outputs = [{ id: 'output', name: 'Data' }];\n        exports.npm = ['serialport', '@serialport/parser-readline'];\n        exports.flags = ['serialport'];\n\n        exports.make = function (instance, config) {\n            const { SerialPort } = require('serialport');\n            const { ReadlineParser } = require('@serialport/parser-readline')\n            let port;\n\n            const state = () => {\n                const obj = port && port.isOpen ? { status: 'connected' } : { status: 'disconnected' };\n                instance.state = obj;\n                instance.status(obj);\n                return obj;\n            };\n\n            instance.configure = function () {\n                disconnect(connect);\n            };\n\n            instance.close = function () {\n                disconnect();\n            };\n\n            instance.configure();\n\n            function disconnect(callback) {\n                if (!port) return callback && callback();\n                port.close(() => {\n                    port = null;\n                    callback && callback();\n                });\n            }\n\n            function connect() {\n                if (!config.port) return;\n                port = new SerialPort({\n                    path: config.port,\n                    baudRate: config.baudRate,\n                    dataBits: config.dataBits,\n                    stopBits: config.stopBits,\n                    parity: config.parity,\n                });\n\n                const parser = port.pipe(new ReadlineParser({ delimiter: '\\r\\n' }))\n\n                port.on('open', () => state());\n                parser.on('data', (data) => instance.send('output', { data: data.toString() }));\n                port.on('close', () => state());\n                port.on('error', (err) => console.error('SerialPort error:', err));\n            }\n        };\n    </script>\n</head>\n\n\n<settings>\n    <div class=\"padding\">\n        <div class=\"row m\">\n            <div class=\"col-md-6\">\n                <ui-component name=\"input\" path=\"?.port\" config=\"placeholder:/dev/ttyS3;required:1\">Port</ui-component>\n            </div>\n            <div class=\"col-md-6\">\n                <ui-component name=\"input\" path=\"?.baudRate\" config=\"type:number;placeholder:9600;required:1\">Baud\n                    Rate</ui-component>\n            </div>\n        </div>\n        <div class=\"row m\">\n            <div class=\"col-md-4\">\n                <ui-component name=\"input\" path=\"?.dataBits\" config=\"type:number;placeholder:8;required:1\">Data\n                    Bits</ui-component>\n            </div>\n            <div class=\"col-md-4\">\n                <ui-component name=\"input\" path=\"?.stopBits\" config=\"type:number;placeholder:1;required:1\">Stop\n                    Bits</ui-component>\n            </div>\n            <div class=\"col-md-4\">\n                <ui-component name=\"dropdown\" path=\"?.parity\"\n                    config=\"items:none,even,odd;required:1\">Parity</ui-component>\n            </div>\n        </div>\n    </div>\n</settings>\n<script></script>\n\n<body>\n    <readme>\n\n    </readme>\n\n    <style>\n        .CLASS footer {\n            padding: 10px;\n            font-size: 11px;\n        }\n\n        .CLASS footer>ui-bind>div {\n            height: 16px;\n        }\n\n        .CLASS footer b {\n            float: right;\n        }\n    </style>\n    <header>\n        <i class=\"ICON\"></i>NAME\n    </header>\n</body>\n\n</html>"
+		},
+		"design": {
+			"print_1749131134912": {
+				"id": "print_1749131134912",
+				"config": {
+					"repo": false,
+					"data": true,
+					"text": false
+				},
+				"x": 475.5,
+				"y": 230.3500213623047,
+				"component": "print",
+				"connections": {},
+				"inputs": [
+					{
+						"id": "input",
+						"name": "Input"
+					}
+				],
+				"template": {
+					"icon": "ti ti-print",
+					"group": "Common",
+					"name": "Print",
+					"inputs": [
+						{
+							"id": "input",
+							"name": "Input"
+						}
+					]
+				}
+			},
+			"digiSenseSeriaPort_1749131510255": {
+				"id": "digiSenseSeriaPort_1749131510255",
+				"config": {
+					"port": "/dev/ttyS3",
+					"baudRate": 115200,
+					"dataBits": 8,
+					"stopBits": 1,
+					"parity": "none"
+				},
+				"x": 207,
+				"y": 125.63336181640625,
+				"component": "digiSenseSeriaPort",
+				"connections": {
+					"output": [
+						{
+							"id": "print_1749131134912",
+							"index": "input"
+						}
+					]
+				},
+				"outputs": [
+					{
+						"id": "output",
+						"name": "Data"
+					}
+				],
+				"template": {
+					"icon": "ti ti-totaljs",
+					"group": "Digisense",
+					"name": "SerialPort",
+					"inputs": [],
+					"outputs": [
+						{
+							"id": "output",
+							"name": "Data"
+						}
+					]
+				}
+			}
+		},
+		"variables": {},
+		"sources": {},
+		"dtcreated": "2025-06-05T13:44:47.582Z",
+		"size": 8774
+	}
 }

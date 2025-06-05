@@ -126,8 +126,8 @@ export default function ComponentDownloadDialog({
           }
         })
         console.log(response.data)
-        // const data: Component[] = JSON.parse(JSON.stringify(response.data).replaceAll('server.url', window.location.hostname || ''));
-        const data: Component[] = JSON.parse(JSON.stringify(response.data).replaceAll('server.url', "http://192.168.10.80:4000" || ''));
+        const data: Component[] = JSON.parse(JSON.stringify(response.data).replaceAll('server.url', 'http://' + window.location.hostname + '4000' || ''));
+        //const data: Component[] = JSON.parse(JSON.stringify(response.data).replaceAll('server.url', "http://192.168.10.80:4000" || ''));
 
         console.log(data)
         setComponents(data)
