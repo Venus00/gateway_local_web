@@ -125,9 +125,9 @@ export default function ComponentDownloadDialog({
             tenantId: tenant.id
           }
         })
-        console.log("rerzerezrzerrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", response.data)
-        const data: Component[] = JSON.parse(response.data.toString().replaceAll('server.url', window.location.hostname || ''));
-
+        console.log(response.data)
+        const data: Component[] = JSON.parse(JSON.stringify(response.data).replaceAll('server.url', window.location.hostname || ''));
+        console.log(data)
         setComponents(data)
         setFilteredComponents(data)
 

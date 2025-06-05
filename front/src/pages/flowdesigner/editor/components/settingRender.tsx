@@ -1,7 +1,3 @@
-"use client"
-
-import type React from "react"
-
 import { useEffect, useRef, useState } from "react"
 import { Info } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -31,7 +27,7 @@ export const SettingsRenderer = ({
   const [formValues, setFormValues] = useState({ ...config })
   const [brokers, setBrokers] = useState<Array<{ id: string; name: string }>>([])
   const callbacksRef = useRef<Record<string, (data: any) => void>>({})
-    const socket = useWebSocket();  
+  const socket = useWebSocket();
 
   // Function to generate a unique callback ID
   const generateCallbackId = () => {
@@ -223,7 +219,7 @@ export const SettingsRenderer = ({
           setFormValues({ ...newConfig })
           onConfigChange(newConfig)
         },
-        settings: () => {},
+        settings: () => { },
         // Add a mock ON function to prevent errors
         ON: (event: string, callback: Function) => {
           console.log(`Event handler registered for: ${event}`)
@@ -391,15 +387,15 @@ export const SettingsRenderer = ({
                   <option value="">Select an option</option>
                   {field.dirsource === "%brokers" && brokers.length > 0
                     ? brokers.map((broker) => (
-                        <option key={broker.id} value={field.dirraw ? broker.id : broker.name}>
-                          {broker.name}
-                        </option>
-                      ))
+                      <option key={broker.id} value={field.dirraw ? broker.id : broker.name}>
+                        {broker.name}
+                      </option>
+                    ))
                     : field.options?.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.text}
-                        </option>
-                      ))}
+                      <option key={option.value} value={option.value}>
+                        {option.text}
+                      </option>
+                    ))}
                 </select>
               )}
 

@@ -143,8 +143,9 @@ type FlowDesignData = {
 export default function Editor() {
     const params = useParams()
     const flowId = (params.id as string) || "default-flow"
-    const wsBase = `${window.location.hostname}:8002`;
-    const wsUrl = `${wsBase}/flows/${flowId}/?openplatform=`;
+    // const wsBase = `${window.location.hostname}:8002`;
+    const wsBase = `192.168.10.80:8002`;
+    const wsUrl = `ws:${wsBase}/flows/${flowId}/?openplatform=`;
 
     return (
         <WebSocketProvider url={wsUrl}>
@@ -1282,10 +1283,10 @@ export function FlowEditor() {
                                     <div className="text-sm flex items-center text-gray-900 dark:text-white">
                                         <span
                                             className={`inline-block w-2 h-2 rounded-full mr-1 ${nodes.find((node) => node.id === selectedNode.current)?.data.status === "reconnecting"
-                                                    ? "bg-yellow-500"
-                                                    : nodes.find((node) => node.id === selectedNode.current)?.data.status === "connected"
-                                                        ? "bg-green-500"
-                                                        : "bg-gray-500"
+                                                ? "bg-yellow-500"
+                                                : nodes.find((node) => node.id === selectedNode.current)?.data.status === "connected"
+                                                    ? "bg-green-500"
+                                                    : "bg-gray-500"
                                                 }`}
                                         />
                                         {nodes.find((node) => node.id === selectedNode.current)?.data.status || "unknown"}

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 const WebSocketContext = createContext<WebSocket | null>(null);
 
-export const WebSocketProvider: React.FC<{ url:string,children: React.ReactNode }> = ({ children,url }) => {
+export const WebSocketProvider: React.FC<{ url: string, children: React.ReactNode }> = ({ children, url }) => {
   const [socket, setWs] = useState<WebSocket | null>(null);
 
   useEffect(() => {

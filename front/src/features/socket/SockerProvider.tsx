@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 
 const SocketContext = createContext<ReturnType<typeof io> | null>(null);
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+//const SOCKET_URL = window.location.hostname;
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

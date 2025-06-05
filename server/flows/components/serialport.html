@@ -2,7 +2,7 @@
 
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <script total="">
+    <script total>
 
         exports.id = 'serialport';
         exports.name = 'SerialPort';
@@ -67,6 +67,36 @@
     </script>
 </head>
 
+
+<settings>
+    <div class="padding">
+        <div class="row m">
+            <div class="col-md-6">
+                <ui-component name="input" path="?.port" config="placeholder:/dev/ttyS3;required:1">Port</ui-component>
+            </div>
+            <div class="col-md-6">
+                <ui-component name="input" path="?.baudRate" config="type:number;placeholder:9600;required:1">Baud
+                    Rate</ui-component>
+            </div>
+        </div>
+        <div class="row m">
+            <div class="col-md-4">
+                <ui-component name="input" path="?.dataBits" config="type:number;placeholder:8;required:1">Data
+                    Bits</ui-component>
+            </div>
+            <div class="col-md-4">
+                <ui-component name="input" path="?.stopBits" config="type:number;placeholder:1;required:1">Stop
+                    Bits</ui-component>
+            </div>
+            <div class="col-md-4">
+                <ui-component name="dropdown" path="?.parity"
+                    config="items:none,even,odd;required:1">Parity</ui-component>
+            </div>
+        </div>
+    </div>
+</settings>
+<script></script>
+
 <body>
     <readme>
 
@@ -89,36 +119,6 @@
     <header>
         <i class="ICON"></i>NAME
     </header>
-    <settings>
-        <div class="padding">
-            <div class="row m">
-                <div class="col-md-6">
-                    <ui-component name="input" path="?.port"
-                        config="placeholder:/dev/ttyS3;required:1">Port</ui-component>
-                </div>
-                <div class="col-md-6">
-                    <ui-component name="input" path="?.baudRate" config="type:number;placeholder:9600;required:1">Baud
-                        Rate</ui-component>
-                </div>
-            </div>
-            <div class="row m">
-                <div class="col-md-4">
-                    <ui-component name="input" path="?.dataBits" config="type:number;placeholder:8;required:1">Data
-                        Bits</ui-component>
-                </div>
-                <div class="col-md-4">
-                    <ui-component name="input" path="?.stopBits" config="type:number;placeholder:1;required:1">Stop
-                        Bits</ui-component>
-                </div>
-                <div class="col-md-4">
-                    <ui-component name="dropdown" path="?.parity"
-                        config="items:none,even,odd;required:1">Parity</ui-component>
-                </div>
-            </div>
-        </div>
-    </settings>
-    <script></script>
-
 </body>
 
 </html>
