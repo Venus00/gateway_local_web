@@ -126,7 +126,7 @@ export default function ComponentDownloadDialog({
           }
         })
         console.log("rerzerezrzerrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", response.data)
-        const data: Component[] = response.data.replaceAll('server.url', window.location.hostname || '');
+        const data: Component[] = JSON.parse(response.data.toString().replaceAll('server.url', window.location.hostname || ''));
 
         setComponents(data)
         setFilteredComponents(data)
