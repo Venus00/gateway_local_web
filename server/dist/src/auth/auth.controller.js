@@ -13,7 +13,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
-const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const class_transformer_1 = require("class-transformer");
 const decorators_1 = require("../common/decorators");
@@ -86,7 +85,6 @@ exports.AuthController = AuthController;
 __decorate([
     (0, common_1.Get)('me'),
     (0, common_1.UseGuards)(auth_guards_1.AccessTokenGuard),
-    openapi.ApiResponse({ status: 200, type: require("./auth.dto").GetLoggedInUserResponseDto }),
     __param(0, (0, decorators_1.GetUser)('sub')),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -95,7 +93,6 @@ __decorate([
 ], AuthController.prototype, "handleMeRequest", null);
 __decorate([
     (0, common_1.Post)('login'),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -104,7 +101,6 @@ __decorate([
 ], AuthController.prototype, "handleLoginRequest", null);
 __decorate([
     (0, common_1.Post)('updateToken'),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -112,7 +108,6 @@ __decorate([
 ], AuthController.prototype, "updateTenantToken", null);
 __decorate([
     (0, common_1.Get)('verify'),
-    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Query)('token')),
     __param(1, (0, common_1.Req)()),
     __param(2, (0, common_1.Res)()),
@@ -122,7 +117,6 @@ __decorate([
 ], AuthController.prototype, "verifyUser", null);
 __decorate([
     (0, common_1.Post)('verifyUser/:id'),
-    openapi.ApiResponse({ status: 201, type: Boolean }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Req)()),
     __param(2, (0, common_1.Res)()),
@@ -132,7 +126,6 @@ __decorate([
 ], AuthController.prototype, "verifyUserAdmin", null);
 __decorate([
     (0, common_1.Post)('forgotPassword'),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __param(2, (0, common_1.Res)()),
@@ -142,7 +135,6 @@ __decorate([
 ], AuthController.prototype, "forgetPassword", null);
 __decorate([
     (0, common_1.Post)('resetPassword'),
-    openapi.ApiResponse({ status: 201, type: Object }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __param(2, (0, common_1.Res)()),
@@ -152,7 +144,6 @@ __decorate([
 ], AuthController.prototype, "resetPassword", null);
 __decorate([
     (0, common_1.Post)('register'),
-    openapi.ApiResponse({ status: 201, type: Object }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -162,7 +153,6 @@ __decorate([
 __decorate([
     (0, common_1.UseGuards)(auth_guards_1.AccessTokenGuard),
     (0, common_1.Delete)('logout'),
-    openapi.ApiResponse({ status: 200, type: Boolean }),
     __param(0, (0, decorators_1.GetUser)('sub')),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),

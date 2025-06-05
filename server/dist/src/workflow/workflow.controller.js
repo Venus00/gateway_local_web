@@ -39,7 +39,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WorkflowController = void 0;
-const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const auth_guards_1 = require("../common/guards/auth.guards");
 const role_enum_1 = require("../common/guards/role.enum");
@@ -112,7 +111,6 @@ exports.WorkflowController = WorkflowController;
 __decorate([
     (0, common_1.Post)(''),
     (0, roles_guard_1.Roles)(role_enum_1.Role.Admin),
-    openapi.ApiResponse({ status: 201, type: Object }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -120,14 +118,12 @@ __decorate([
 ], WorkflowController.prototype, "createWorkflow", null);
 __decorate([
     (0, common_1.Get)('flowscomponents'),
-    openapi.ApiResponse({ status: 200, type: [Object] }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], WorkflowController.prototype, "serveflowcomponents", null);
 __decorate([
     (0, common_1.Get)(''),
-    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -135,7 +131,6 @@ __decorate([
 ], WorkflowController.prototype, "find", null);
 __decorate([
     (0, common_1.Get)('workflow/:workflow_id'),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('workflow_id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -143,7 +138,6 @@ __decorate([
 ], WorkflowController.prototype, "findWorkflowId", null);
 __decorate([
     (0, common_1.Put)(''),
-    openapi.ApiResponse({ status: 200, type: String }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -152,7 +146,6 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, roles_guard_1.Roles)(role_enum_1.Role.Admin),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),

@@ -3,16 +3,14 @@ import { UsersService } from "src/users/users.service";
 import { TenantService } from "src/users/tenant.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import { MailService } from "./email.service";
 import { JwtPayload } from "./jwt-payload";
 export declare class AuthService {
     private readonly userService;
     private readonly tenantService;
     private readonly jwtService;
     private readonly configService;
-    private readonly mailService;
     private logger;
-    constructor(userService: UsersService, tenantService: TenantService, jwtService: JwtService, configService: ConfigService, mailService: MailService);
+    constructor(userService: UsersService, tenantService: TenantService, jwtService: JwtService, configService: ConfigService);
     getLoggedInUser(userId: number): Promise<{
         [x: string]: any;
     } | undefined>;

@@ -7,7 +7,6 @@ import { UsersService } from "src/users/users.service";
 import { TenantService } from "src/users/tenant.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import { MailService } from "./email.service";
 import { JwtPayload } from "./jwt-payload";
 import { v4 as uuidv4 } from 'uuid';
 import { forgetPasswordEmail } from "src/common/template-mail/forgotPasswordEmail";
@@ -23,7 +22,6 @@ export class AuthService {
     private readonly tenantService: TenantService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly mailService: MailService,
   ) { }
 
   // Fetch logged in user for a specific tenant
@@ -89,16 +87,7 @@ export class AuthService {
       if (verifiedUser) {
         console.log(verifiedUser, 'verifiedUser');
 
-        const oauth = await this.mailService.authorize();
-        const html = AccountVerified.replaceAll(
-          '[User name]',
-          `${userRow.name}`,
-        )
-          .replaceAll(
-            '[App Link]',
-            `${process.env.FORGOT_PASSWORD_URL}`,
-          )
-        this.mailService.sendEmail(oauth, userRow?.email, 'Account Verified', html);
+
       }
       return true;
     }
@@ -108,12 +97,7 @@ export class AuthService {
     if (!userRow) throw new Error('Invalid User');
     const resetToken = await this.generatePasswordResetToken(userRow.id);
 
-    const oauth = await this.mailService.authorize();
-    const html = forgetPasswordEmail.replaceAll(
-      '[Reset Password Link]',
-      `${process.env.FORGOT_PASSWORD_URL}/forgot-password?token=${resetToken}`,
-    );
-    this.mailService.sendEmail(oauth, data.email, 'forgetPasswordEmail', html);
+
 
   }
   async generatePasswordResetToken(userId: number): Promise<string> {
@@ -158,13 +142,10 @@ export class AuthService {
       newUser.id,
     );
 
-    const oauth = await this.mailService.authorize();
     const html = validationEmail.replaceAll(
       '[Activation Link]',
       `${process.env.SERVER_PRIMARY_DNS}/api/v1/auth/verify?token=${token}`,
     );
-
-    this.mailService.sendEmail(oauth, data.email, 'ValidationEmail', html);
 
     return newUser;
   }
@@ -188,9 +169,7 @@ export class AuthService {
 
     if (updatedUser) {
       await this.userService.updatePasswordToken(data.token);
-      const oauth = await this.mailService.authorize();
-      const html = PasswordUpdatedEmail
-      this.mailService.sendEmail(oauth, user?.email, 'Password Updated', html);
+
       return true
     }
     return false

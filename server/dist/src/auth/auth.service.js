@@ -20,18 +20,13 @@ const users_service_1 = require("../users/users.service");
 const tenant_service_1 = require("../users/tenant.service");
 const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
-const email_service_1 = require("./email.service");
 const uuid_1 = require("uuid");
-const forgotPasswordEmail_1 = require("../common/template-mail/forgotPasswordEmail");
-const PasswordUpdatedEmail_1 = require("../common/template-mail/PasswordUpdatedEmail");
-const AccountVerified_1 = require("../common/template-mail/AccountVerified");
 let AuthService = AuthService_1 = class AuthService {
-    constructor(userService, tenantService, jwtService, configService, mailService) {
+    constructor(userService, tenantService, jwtService, configService) {
         this.userService = userService;
         this.tenantService = tenantService;
         this.jwtService = jwtService;
         this.configService = configService;
-        this.mailService = mailService;
         this.logger = new common_1.Logger(AuthService_1.name);
     }
     async getLoggedInUser(userId) {
@@ -90,10 +85,6 @@ let AuthService = AuthService_1 = class AuthService {
             const verifiedUser = await this.userService.markAsVerified(userRow.id);
             if (verifiedUser) {
                 console.log(verifiedUser, 'verifiedUser');
-                const oauth = await this.mailService.authorize();
-                const html = AccountVerified_1.AccountVerified.replaceAll('[User name]', `${userRow.name}`)
-                    .replaceAll('[App Link]', `${process.env.FORGOT_PASSWORD_URL}`);
-                this.mailService.sendEmail(oauth, userRow?.email, 'Account Verified', html);
             }
             return true;
         }
@@ -103,9 +94,6 @@ let AuthService = AuthService_1 = class AuthService {
         if (!userRow)
             throw new Error('Invalid User');
         const resetToken = await this.generatePasswordResetToken(userRow.id);
-        const oauth = await this.mailService.authorize();
-        const html = forgotPasswordEmail_1.forgetPasswordEmail.replaceAll('[Reset Password Link]', `${process.env.FORGOT_PASSWORD_URL}/forgot-password?token=${resetToken}`);
-        this.mailService.sendEmail(oauth, data.email, 'forgetPasswordEmail', html);
     }
     async generatePasswordResetToken(userId) {
         const token = (0, uuid_1.v4)();
@@ -137,9 +125,7 @@ let AuthService = AuthService_1 = class AuthService {
         });
         const token = (0, uuid_1.v4)();
         const userVerification = await this.userService.createUserVerification(token, newUser.id);
-        const oauth = await this.mailService.authorize();
         const html = validationEmail_1.validationEmail.replaceAll('[Activation Link]', `${process.env.SERVER_PRIMARY_DNS}/api/v1/auth/verify?token=${token}`);
-        this.mailService.sendEmail(oauth, data.email, 'ValidationEmail', html);
         return newUser;
     }
     async resetPassword(data) {
@@ -160,9 +146,6 @@ let AuthService = AuthService_1 = class AuthService {
         const updatedUser = await this.userService.updatePassword(user?.email, hashedPassword);
         if (updatedUser) {
             await this.userService.updatePasswordToken(data.token);
-            const oauth = await this.mailService.authorize();
-            const html = PasswordUpdatedEmail_1.PasswordUpdatedEmail;
-            this.mailService.sendEmail(oauth, user?.email, 'Password Updated', html);
             return true;
         }
         return false;
@@ -228,7 +211,6 @@ exports.AuthService = AuthService = AuthService_1 = __decorate([
     __metadata("design:paramtypes", [users_service_1.UsersService,
         tenant_service_1.TenantService,
         jwt_1.JwtService,
-        config_1.ConfigService,
-        email_service_1.MailService])
+        config_1.ConfigService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

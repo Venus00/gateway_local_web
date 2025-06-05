@@ -10,13 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserResponseDto = exports.CreateUserDto = void 0;
-const openapi = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 class CreateUserDto {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { tenantId: { required: true, type: () => Number }, name: { required: true, type: () => String }, tenantName: { required: true, type: () => String }, email: { required: true, type: () => String, format: "email" }, password: { required: true, type: () => String }, refreshToken: { required: false, type: () => String }, role: { required: false, type: () => String } };
-    }
 }
 exports.CreateUserDto = CreateUserDto;
 __decorate([
@@ -48,9 +44,6 @@ __decorate([
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "role", void 0);
 class UserResponseDto {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { password: { required: true, type: () => String }, refreshToken: { required: true, type: () => Object }, deleted_at: { required: true, type: () => Object } };
-    }
 }
 exports.UserResponseDto = UserResponseDto;
 __decorate([

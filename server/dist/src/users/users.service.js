@@ -44,12 +44,10 @@ const drizzle_orm_1 = require("drizzle-orm");
 const schema_1 = require("../../db/schema");
 const uuid_1 = require("uuid");
 const validationEmail_1 = require("../common/template-mail/validationEmail");
-const email_service_1 = require("../auth/email.service");
 const hash_1 = require("../common/utils/hash");
 const config_1 = require("@nestjs/config");
 let UsersService = UsersService_1 = class UsersService {
-    constructor(mailService, configService, db) {
-        this.mailService = mailService;
+    constructor(configService, db) {
         this.configService = configService;
         this.db = db;
         this.logger = new common_1.Logger(UsersService_1.name);
@@ -70,9 +68,7 @@ let UsersService = UsersService_1 = class UsersService {
             .then((res) => res[0] ?? null);
         const token = (0, uuid_1.v4)();
         const userVerification = await this.createUserVerification(token, user.id);
-        const oauth = await this.mailService.authorize();
         const html = validationEmail_1.validationEmail.replaceAll('[Activation Link]', `${process.env.SERVER_PRIMARY_DNS}/api/v1/auth/verify?token=${token}`);
-        this.mailService.sendEmail(oauth, data.email, 'ValidationEmail', html);
     }
     async updatePassword(email, password) {
         return await this.db.update(schema_1.users).set({
@@ -172,9 +168,8 @@ let UsersService = UsersService_1 = class UsersService {
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = UsersService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __param(2, (0, common_1.Inject)('DB_DEV')),
-    __metadata("design:paramtypes", [email_service_1.MailService,
-        config_1.ConfigService,
+    __param(1, (0, common_1.Inject)('DB_DEV')),
+    __metadata("design:paramtypes", [config_1.ConfigService,
         node_postgres_1.NodePgDatabase])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

@@ -12,7 +12,6 @@ const users_service_1 = require("./users.service");
 const users_controller_1 = require("./users.controller");
 const tenant_service_1 = require("./tenant.service");
 const tenant_controller_1 = require("./tenant.controller");
-const email_service_1 = require("../auth/email.service");
 const config_1 = require("@nestjs/config");
 let UsersModule = class UsersModule {
 };
@@ -20,7 +19,7 @@ exports.UsersModule = UsersModule;
 exports.UsersModule = UsersModule = __decorate([
     (0, common_1.Module)({
         imports: [],
-        providers: [users_service_1.UsersService, tenant_service_1.TenantService, email_service_1.MailService, config_1.ConfigService],
+        providers: [users_service_1.UsersService, tenant_service_1.TenantService, config_1.ConfigService],
         controllers: [users_controller_1.UserController, tenant_controller_1.TenantController],
         exports: [users_service_1.UsersService, tenant_service_1.TenantService]
     })

@@ -13,7 +13,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
-const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const users_dto_1 = require("./users.dto");
 const auth_guards_1 = require("../common/guards/auth.guards");
@@ -98,7 +97,6 @@ let UserController = class UserController {
 exports.UserController = UserController;
 __decorate([
     (0, common_1.Get)(),
-    openapi.ApiResponse({ status: 200, type: [require("./users.dto").UserResponseDto] }),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -106,7 +104,6 @@ __decorate([
 ], UserController.prototype, "handleGetAllUsers", null);
 __decorate([
     (0, common_1.Put)(),
-    openapi.ApiResponse({ status: 200, type: require("./users.dto").UserResponseDto }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -115,7 +112,6 @@ __decorate([
 ], UserController.prototype, "handleUpdateUser", null);
 __decorate([
     (0, common_1.Put)("/update"),
-    openapi.ApiResponse({ status: 200, type: require("./users.dto").UserResponseDto }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -124,7 +120,6 @@ __decorate([
 ], UserController.prototype, "handleUpdateUserInfo", null);
 __decorate([
     (0, common_1.Post)(),
-    openapi.ApiResponse({ status: 201, type: require("./users.dto").UserResponseDto }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [users_dto_1.CreateUserDto]),
@@ -132,7 +127,6 @@ __decorate([
 ], UserController.prototype, "handleCreateUser", null);
 __decorate([
     (0, common_1.Post)("/newUser"),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -140,7 +134,6 @@ __decorate([
 ], UserController.prototype, "handleCreateNewUser", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    openapi.ApiResponse({ status: 200, type: require("./users.dto").UserResponseDto }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),

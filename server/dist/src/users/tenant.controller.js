@@ -13,7 +13,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TenantController = void 0;
-const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const auth_guards_1 = require("../common/guards/auth.guards");
 const class_transformer_1 = require("class-transformer");
@@ -67,14 +66,12 @@ exports.TenantController = TenantController;
 __decorate([
     (0, common_1.Get)(),
     (0, roles_guard_1.Roles)(role_enum_1.Role.GAdmin),
-    openapi.ApiResponse({ status: 200, type: [require("./tenant.dto").TenantReponseDto] }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], TenantController.prototype, "handleGetAllTenant", null);
 __decorate([
     (0, common_1.Get)('dashboard'),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -82,7 +79,6 @@ __decorate([
 ], TenantController.prototype, "handleGetLayout", null);
 __decorate([
     (0, common_1.Delete)('dashboard/:id'),
-    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -90,7 +86,6 @@ __decorate([
 ], TenantController.prototype, "deleteDashboard", null);
 __decorate([
     (0, common_1.Put)('dashboard'),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -99,7 +94,6 @@ __decorate([
 __decorate([
     (0, roles_guard_1.Roles)(role_enum_1.Role.GAdmin),
     (0, common_1.Post)(),
-    openapi.ApiResponse({ status: 201, type: Object }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
@@ -108,7 +102,6 @@ __decorate([
 ], TenantController.prototype, "handleCreateTenant", null);
 __decorate([
     (0, common_1.Put)(),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -116,7 +109,6 @@ __decorate([
 ], TenantController.prototype, "handleUpdateTenant", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    openapi.ApiResponse({ status: 200, type: require("./users.dto").UserResponseDto }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),

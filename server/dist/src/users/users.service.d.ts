@@ -1,14 +1,12 @@
 import { CreateNewUserDto, CreateUserDto, UpdateUserDto } from './users.dto';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../db/schema';
-import { MailService } from 'src/auth/email.service';
 import { ConfigService } from '@nestjs/config';
 export declare class UsersService {
-    private readonly mailService;
     private readonly configService;
     private readonly db;
     private logger;
-    constructor(mailService: MailService, configService: ConfigService, db: NodePgDatabase<typeof schema>);
+    constructor(configService: ConfigService, db: NodePgDatabase<typeof schema>);
     createUser(data: CreateUserDto): Promise<any>;
     createNewUser(data: CreateNewUserDto): Promise<void>;
     updatePassword(email: string, password: string): Promise<any[] | import("pg").QueryResult<never>>;

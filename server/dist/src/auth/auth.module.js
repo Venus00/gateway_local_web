@@ -14,7 +14,6 @@ const users_module_1 = require("../users/users.module");
 const jwt_1 = require("@nestjs/jwt");
 const stragegies_1 = require("./stragegies");
 const config_1 = require("@nestjs/config");
-const email_service_1 = require("./email.service");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -23,7 +22,7 @@ exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [config_1.ConfigModule.forRoot(), jwt_1.JwtModule.register({}), users_module_1.UsersModule],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, stragegies_1.AccessTokenStrategy, stragegies_1.RefreshTokenStrategy, email_service_1.MailService],
+        providers: [auth_service_1.AuthService, stragegies_1.AccessTokenStrategy, stragegies_1.RefreshTokenStrategy],
         exports: [auth_service_1.AuthService],
     })
 ], AuthModule);

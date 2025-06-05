@@ -6,7 +6,6 @@ import { eq, SQL } from 'drizzle-orm';
 import { tenant, users, userVerification, resetPasswordToken } from '../../db/schema';
 import { v4 as uuidv4 } from 'uuid';
 import { validationEmail } from 'src/common/template-mail/validationEmail';
-import { MailService } from 'src/auth/email.service';
 import { hashGenerate } from 'src/common/utils/hash';
 import { ConfigService } from '@nestjs/config';
 
@@ -15,7 +14,6 @@ export class UsersService {
   private logger = new Logger(UsersService.name);
 
   constructor(
-    private readonly mailService: MailService,
     private readonly configService: ConfigService,
     @Inject('DB_DEV') private readonly db: NodePgDatabase<typeof schema>) { }
 
@@ -45,13 +43,11 @@ export class UsersService {
       user.id,
     );
 
-    const oauth = await this.mailService.authorize();
     const html = validationEmail.replaceAll(
       '[Activation Link]',
       `${process.env.SERVER_PRIMARY_DNS}/api/v1/auth/verify?token=${token}`,
     );
 
-    this.mailService.sendEmail(oauth, data.email, 'ValidationEmail', html);
   }
 
   async updatePassword(email: string, password: string) {
