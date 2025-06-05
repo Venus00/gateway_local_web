@@ -1,15 +1,11 @@
 /* eslint-disable prettier/prettier */
 import { HttpException, HttpStatus, Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { and, desc, eq, gt, lt } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../db/schema';
 import { workflow } from '../../db/schema';
 import { CreateWorkflowDto, EditWorkflowDto } from './workflow.dto';
-import moment from 'moment';
-import { serial } from 'drizzle-orm/mysql-core';
-import { SocketGatway } from 'src/socket/socket.gatway';
 import { apiClient } from './api.client';
-import { datacatalog } from 'googleapis/build/src/apis/datacatalog';
 @Injectable()
 export class WorkflowService implements OnModuleInit {
   private logger = new Logger(WorkflowService.name);

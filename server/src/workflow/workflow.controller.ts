@@ -68,16 +68,7 @@ export class WorkflowController {
     const workflows = await this.workflow.findWorkflow(query.tenantId);
     return workflows;
   }
-  // @Get('')
-  // async findByTenantId(@Query() query) {
-  //   const workflows = await this.workflow.findWorkflow(query.tenantId);
-  //   return workflows;
-  // }
-  // @Get('workflow/:serial')
-  // async findWorkflow(@Param('serial') workflow_serial: string) {
-  //   const workflow = await this.workflow.findWorkflowBySerial(workflow_serial);
-  //   return workflow;
-  // }
+
 
   @Get('workflow/:workflow_id')
   async findWorkflowId(@Param('workflow_id') workflow_id: number) {
