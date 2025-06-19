@@ -1,3 +1,7 @@
+"use client"
+
+import type React from "react"
+
 import { useEffect, useRef, useState } from "react"
 import { Info } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -26,9 +30,10 @@ export const SettingsRenderer = ({
   const localConfig = useRef({ ...config })
   const [formValues, setFormValues] = useState({ ...config })
   const [brokers, setBrokers] = useState<Array<{ id: string; name: string }>>([])
+  const [entities, setEntities] = useState<Array<{ id: string | number; name: string }>>([])
   const callbacksRef = useRef<Record<string, (data: any) => void>>({})
-  const socket = useWebSocket();
-
+  const { socket, reconnect } = useWebSocket();
+console.log("ennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",entities)
   // Function to generate a unique callback ID
   const generateCallbackId = () => {
     return Math.random().toString(36).substring(2, 15)
@@ -115,6 +120,7 @@ export const SettingsRenderer = ({
       required?: boolean
       options?: Array<{ value: string; text: string }>
       dirsource?: string
+      datasource?: string
       dirraw?: boolean
     }> = []
 
@@ -133,7 +139,7 @@ export const SettingsRenderer = ({
       let type = "text"
       if (configObj.type === "number") type = "number"
       if (configObj.type === "javascript") type = "code"
-      if (configObj.type === "dropdown" || name === "dropdown" || configObj.dirsource) type = "dropdown"
+      if (configObj.type === "dropdown" || name === "dropdown" || configObj.dirsource || configObj.datasource) type = "dropdown"
       if (configObj.type === "checkbox" || name === "checkbox") type = "checkbox"
       if (configObj.type === "textarea" || name === "textarea") type = "textarea"
 
@@ -146,8 +152,9 @@ export const SettingsRenderer = ({
         label,
         placeholder: configObj.placeholder,
         required: configObj.required === "1",
-        options: type === "dropdown" ? parseOptions(configObj.items || configObj.dirsource) : undefined,
+        options: type === "dropdown" ? parseOptions(configObj.items || configObj.datasource) : undefined,
         dirsource: configObj.dirsource,
+        datasource: configObj.datasource,
         dirraw: configObj.dirraw === "1",
       })
     })
@@ -157,6 +164,14 @@ export const SettingsRenderer = ({
 
   const parseOptions = (itemsStr?: string) => {
     if (!itemsStr) return []
+
+    // Handle special case for entities
+    if (itemsStr === "entities" && entities.length > 0) {
+      return entities.map((entity) => ({
+        value: entity.id.toString(),
+        text: entity.name,
+      }))
+    }
 
     // Handle special case for %brokers
     if (itemsStr === "%brokers" && formValues["%brokers"]) {
@@ -201,26 +216,28 @@ export const SettingsRenderer = ({
     setFormValues(newConfig)
     onConfigChange(newConfig)
   }
-
+console.log("localConfig.current33333333333333333333333333333333333",localConfig.current)
   useEffect(() => {
-    if (!settingsJs || !containerRef.current) return
-
-    // Skip execution if it's an MQTT subscription script
-    if (settingsJs.includes("ON('configure_mqttsubscribe'")) {
-      console.log("MQTT subscription script detected, skipping direct execution")
-      return
-    }
+    if (!settingsJs) return
 
     try {
       const exportObj: any = {
-        config: { ...config },
-        configure: (newConfig: any) => {
-          localConfig.current = { ...newConfig }
-          setFormValues({ ...newConfig })
-          onConfigChange(newConfig)
-        },
-        settings: () => { },
-        // Add a mock ON function to prevent errors
+       config: new Proxy({ ...config }, {
+    set(target, property, value) {
+      target[property] = value;
+      const newConfig = { ...target };
+      localConfig.current = newConfig;
+      setFormValues(newConfig);
+      onConfigChange(newConfig);
+      return true;
+    }
+  }),
+  configure: (newConfig) => {
+    localConfig.current = { ...newConfig };
+    setFormValues({ ...newConfig });
+    onConfigChange(newConfig);
+  },
+        settings: () => {},
         ON: (event: string, callback: Function) => {
           console.log(`Event handler registered for: ${event}`)
         },
@@ -228,9 +245,12 @@ export const SettingsRenderer = ({
           console.log(`Setting ${key}`)
           const newConfig = { ...localConfig.current }
           newConfig[key] = value
-          localConfig.current = newConfig
+          localConfig.current = newConfig 
           setFormValues((prev) => ({ ...prev, [key]: value }))
           onConfigChange(newConfig)
+        
+            setEntities(value)
+          
         },
       }
 
@@ -242,13 +262,14 @@ export const SettingsRenderer = ({
       }
 
       const script = new Function("TOUCH", settingsJs)
+      console.log("Executing settings JS333333333333333:", settingsJs)
       script(TOUCH)
+      const tst=script(TOUCH)
+      console.log("TOUCH function executed:333333333kdkdoeoeo", tst)
+      console.log("Settings JS executed successfully2222222222")
     } catch (err) {
       console.error("Error executing settings JS:", err)
-      // Don't set error for MQTT subscription scripts
-      if (!settingsJs.includes("ON('configure_mqttsubscribe'")) {
-        setError("Failed to execute settings script")
-      }
+      setError("Failed to execute settings script")
     }
   }, [settingsJs, config])
 
@@ -280,6 +301,7 @@ export const SettingsRenderer = ({
       }
     }
   }, [brokers])
+
   const fields = parseSettings(settingsHtml)
 
   // When no fields are found but HTML exists
@@ -385,17 +407,23 @@ export const SettingsRenderer = ({
                   required={field.required}
                 >
                   <option value="">Select an option</option>
-                  {field.dirsource === "%brokers" && brokers.length > 0
+                  {field.datasource === "entities" && entities.length > 0
+                    ? entities.map((entity) => (
+                        <option key={entity.id} value={entity.id.toString()}>
+                          {entity.name}
+                        </option>
+                      ))
+                    : field.dirsource === "%brokers" && brokers.length > 0
                     ? brokers.map((broker) => (
-                      <option key={broker.id} value={field.dirraw ? broker.id : broker.name}>
-                        {broker.name}
-                      </option>
-                    ))
+                        <option key={broker.id} value={field.dirraw ? broker.id : broker.name}>
+                          {broker.name}
+                        </option>
+                      ))
                     : field.options?.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.text}
-                      </option>
-                    ))}
+                        <option key={option.value} value={option.value}>
+                          {option.text}
+                        </option>
+                      ))}
                 </select>
               )}
 

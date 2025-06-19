@@ -143,14 +143,13 @@ type FlowDesignData = {
 export default function Editor() {
     const params = useParams()
     const flowId = (params.id as string) || "default-flow"
-    const wsBase = `${window.location.hostname}:8002`;
-    //const wsBase = `192.168.10.80:8002`;
-    const wsUrl = `ws://${wsBase}/flows/${flowId}/?openplatform=`;
+    const wsBase = import.meta.env.VITE_FLOWS_SOCKET || '';
+    const wsUrl = `${wsBase}/flows/${flowId}/?openplatform=`;
 
     return (
         <WebSocketProvider url={wsUrl}>
             <ReactFlowProvider>
-                <FlowEditor />
+            <FlowEditor />
             </ReactFlowProvider>
         </WebSocketProvider>
     )
@@ -163,7 +162,7 @@ export function FlowEditor() {
     const flowId = (params.id as string) || "default-flow"
     // const wsBase = import.meta.env.VITE_FLOWS_SOCKET || '';
     // const wsUrl = `${wsBase}/flows/${flowId}/?openplatform=`;
-    const socket = useWebSocket();
+    const { socket, reconnect } = useWebSocket();
     const [loading, setLoading] = useState(true)
     // const [error, setError] = useState<string | null>(null)
     const [stats, setStats] = useState<FlowStats | null>(null)
@@ -179,7 +178,7 @@ export function FlowEditor() {
     const [isPaused, setIsPaused] = useState(false)
     const [isLoadingFlow, setIsLoadingFlow] = useState(false)
     const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set());
-    const [animationTimeouts, setAnimationTimeouts] = useState<Record<string, NodeJS.Timeout>>({})
+        const [animationTimeouts, setAnimationTimeouts] = useState<Record<string, NodeJS.Timeout>>({})
     const [animatedEdges, setAnimatedEdges] = useState<Set<string>>(new Set())
     const [downloadDialogOpen, setDownloadDialogOpen] = useState(false)
     const [contextMenu, setContextMenu] = useState<{
@@ -187,39 +186,39 @@ export function FlowEditor() {
         x: number
         y: number
         component: any | null
-    }>({
+      }>({
         visible: false,
         x: 0,
         y: 0,
         component: null,
-    })
+      })
 
-    const { zoom, setReactFlowInstance } = useFlowStore();
-    const { setViewport } = useReactFlow();
+      const { zoom, setReactFlowInstance } = useFlowStore();
+  const { setViewport } = useReactFlow();
 
-    // Gérer l'initialisation de React Flow
-    const onInit = (instance: ReactFlowInstance) => {
-        setReactFlowInstance(instance);
-        instance.setViewport({ x: 0, y: 0, zoom });
-    };
-    const nodeConnectionsMap = useRef<Record<string, Array<{ sourceId: string; edgeId: string }>>>({})
-    useEffect(() => {
+  // Gérer l'initialisation de React Flow
+  const onInit = (instance: ReactFlowInstance) => {
+    setReactFlowInstance(instance);
+    instance.setViewport({ x: 0, y: 0, zoom }); 
+  };
+      const nodeConnectionsMap = useRef<Record<string, Array<{ sourceId: string; edgeId: string }>>>({})
+      useEffect(() => {
         console.log("Building connection map with edges:", edges)
         const connectionMap: Record<string, Array<{ sourceId: string; edgeId: string }>> = {}
-
+    
         edges.forEach((edge) => {
-            if (!connectionMap[edge.target]) {
-                connectionMap[edge.target] = []
-            }
-            connectionMap[edge.target].push({
-                sourceId: edge.source,
-                edgeId: edge.id,
-            })
+          if (!connectionMap[edge.target]) {
+            connectionMap[edge.target] = []
+          }
+          connectionMap[edge.target].push({
+            sourceId: edge.source,
+            edgeId: edge.id,
+          })
         })
-
+    
         nodeConnectionsMap.current = connectionMap
         console.log("Connection map built:", connectionMap)
-    }, [edges])
+      }, [edges])
     const handleDownloadComponent = () => {
         setDownloadDialogOpen(true)
     }
@@ -233,157 +232,292 @@ export function FlowEditor() {
     const animateEdge = useCallback((edgeId: string, duration = 1500) => {
         console.log("Animating edge:", edgeId)
         setAnimatedEdges((prev) => {
-            const newSet = new Set(prev)
-            newSet.add(edgeId)
-            return newSet
+          const newSet = new Set(prev)
+          newSet.add(edgeId)
+          return newSet
         })
         setTimeout(() => {
-            setAnimatedEdges((prev) => {
-                const newSet = new Set(prev)
-                newSet.delete(edgeId)
-                return newSet
-            })
+          setAnimatedEdges((prev) => {
+            const newSet = new Set(prev)
+            newSet.delete(edgeId)
+            return newSet
+          })
         }, duration)
-    }, [])
-
-    // CORRECTION 4: Ajouter useCallback pour triggerAnimation
-    const triggerAnimation = useCallback(
+      }, [])
+    
+      // CORRECTION 4: Ajouter useCallback pour triggerAnimation
+      const triggerAnimation = useCallback(
         (nodeId: string) => {
-            console.log("Triggering animation for node:", nodeId)
-            selectedNode.current = nodeId
-
-            if (animationTimeouts[nodeId]) {
-                clearTimeout(animationTimeouts[nodeId])
-            }
-
+          console.log("Triggering animation for node:", nodeId)
+          selectedNode.current = nodeId
+    
+          if (animationTimeouts[nodeId]) {
+            clearTimeout(animationTimeouts[nodeId])
+          }
+    
+          setActiveNodes((prev) => {
+            const newActiveNodes = new Set(prev)
+            newActiveNodes.add(nodeId)
+            console.log("Added node to active nodes:", nodeId, "Active nodes:", newActiveNodes)
+            return newActiveNodes
+          })
+    
+          const timeout = setTimeout(() => {
             setActiveNodes((prev) => {
-                const newActiveNodes = new Set(prev)
-                newActiveNodes.add(nodeId)
-                console.log("Added node to active nodes:", nodeId, "Active nodes:", newActiveNodes)
-                return newActiveNodes
+              const newActiveNodes = new Set(prev)
+              newActiveNodes.delete(nodeId)
+              console.log("Removed node from active nodes:", nodeId)
+              return newActiveNodes
             })
-
-            const timeout = setTimeout(() => {
-                setActiveNodes((prev) => {
-                    const newActiveNodes = new Set(prev)
-                    newActiveNodes.delete(nodeId)
-                    console.log("Removed node from active nodes:", nodeId)
-                    return newActiveNodes
-                })
-            }, 1000)
-
-            setAnimationTimeouts((prev) => ({
-                ...prev,
-                [nodeId]: timeout,
-            }))
-
-            const connectedEdges = edges.filter((edge) => edge.source === nodeId)
-            console.log("Connected edges for", nodeId, ":", connectedEdges)
-
-            connectedEdges.forEach((edge, index) => {
-                setTimeout(() => {
-                    animateEdge(edge.id)
-                    setTimeout(() => {
-                        triggerAnimation(edge.target)
-                    }, 300)
-                }, 200 * index)
-            })
+          }, 1000)
+    
+          setAnimationTimeouts((prev) => ({
+            ...prev,
+            [nodeId]: timeout,
+          }))
+    
+          const connectedEdges = edges.filter((edge) => edge.source === nodeId)
+          console.log("Connected edges for", nodeId, ":", connectedEdges)
+    
+          connectedEdges.forEach((edge, index) => {
+            setTimeout(() => {
+              animateEdge(edge.id)
+              setTimeout(() => {
+                triggerAnimation(edge.target)
+              }, 300)
+            }, 200 * index)
+          })
         },
         [edges, animationTimeouts, animateEdge],
-    )
-    const animateAntecedents = useCallback(
+      )
+      const animateAntecedents = useCallback(
         (targetNodeId: string) => {
-            console.log("Animating antecedents for node:", targetNodeId)
-            const sourcePaths = nodeConnectionsMap.current[targetNodeId] || []
-            console.log("Source paths found:", sourcePaths)
-
-            if (sourcePaths.length === 0) {
-                console.log("No source paths found for node:", targetNodeId)
-                return
-            }
-
-            // Animer chaque chemin séquentiellement
-            let index = 0
-            const animateNext = () => {
-                if (index >= sourcePaths.length) {
-                    console.log("All animations complete, activating target node:", targetNodeId)
-                    // Toutes les animations sont terminées, activer le nœud cible
-                    setActiveNodes((prev) => {
-                        const newSet = new Set(prev)
-                        newSet.add(targetNodeId)
-                        return newSet
-                    })
-
-                    setTimeout(() => {
-                        setActiveNodes((prev) => {
-                            const newSet = new Set(prev)
-                            newSet.delete(targetNodeId)
-                            return newSet
-                        })
-                    }, 500)
-                    return
-                }
-
-                const currentPath = sourcePaths[index]
-                console.log("Animating path:", currentPath)
-
-                // Activer le nœud source
+          console.log("Animating antecedents for node:", targetNodeId)
+          const sourcePaths = nodeConnectionsMap.current[targetNodeId] || []
+          console.log("Source paths found:", sourcePaths)
+    
+          if (sourcePaths.length === 0) {
+            console.log("No source paths found for node:", targetNodeId)
+            return
+          }
+    
+          // Animer chaque chemin séquentiellement
+          let index = 0
+          const animateNext = () => {
+            if (index >= sourcePaths.length) {
+              console.log("All animations complete, activating target node:", targetNodeId)
+              // Toutes les animations sont terminées, activer le nœud cible
+              setActiveNodes((prev) => {
+                const newSet = new Set(prev)
+                newSet.add(targetNodeId)
+                return newSet
+              })
+    
+              setTimeout(() => {
                 setActiveNodes((prev) => {
-                    const newSet = new Set(prev)
-                    newSet.add(currentPath.sourceId)
-                    return newSet
+                  const newSet = new Set(prev)
+                  newSet.delete(targetNodeId)
+                  return newSet
                 })
-
-                // Animer l'edge
-                animateEdge(currentPath.edgeId, 1000)
-
-                // Après l'animation
-                setTimeout(() => {
-                    // Désactiver le nœud source
-                    setActiveNodes((prev) => {
-                        const newSet = new Set(prev)
-                        newSet.delete(currentPath.sourceId)
-                        return newSet
-                    })
-
-                    // Passer au suivant
-                    index++
-                    animateNext()
-                }, 1000)
+              }, 500)
+              return
             }
-
-            // Commencer l'animation
-            animateNext()
+    
+            const currentPath = sourcePaths[index]
+            console.log("Animating path:", currentPath)
+    
+            // Activer le nœud source
+            setActiveNodes((prev) => {
+              const newSet = new Set(prev)
+              newSet.add(currentPath.sourceId)
+              return newSet
+            })
+    
+            // Animer l'edge
+            animateEdge(currentPath.edgeId, 1000)
+    
+            // Après l'animation
+            setTimeout(() => {
+              // Désactiver le nœud source
+              setActiveNodes((prev) => {
+                const newSet = new Set(prev)
+                newSet.delete(currentPath.sourceId)
+                return newSet
+              })
+    
+              // Passer au suivant
+              index++
+              animateNext()
+            }, 1000)
+          }
+    
+          // Commencer l'animation
+          animateNext()
         },
         [animateEdge],
-    )
-    useEffect(() => {
-        if (!socket) return
+      )
+      const animationData = useRef<any>([]);
+      const getAnimationIds = (message:any) => {
+    if (message.TYPE === 'flow/status' && message.id && message.data && message.data !== '') {
+      // For flow/status, return the message.id
+      return [message.id];
+    } else if (message.TYPE === 'flow/stats' && message.traffic?.priority) {
+      // For flow/stats, skip the first priority entry and return the rest
+      return message.traffic.priority.slice(1).map(id => id.replace(/__output$/, ''));
+    }
+    return [];
+  };
+  
+  
+const [pendingStatsIds, setPendingStatsIds] = useState<string[] | null>(null);
+const [pendingStatusIds, setPendingStatusIds] = useState<string[]>([]);
 
-        const handleMessage = (event: MessageEvent) => {
-            try {
-                const message = JSON.parse(event.data)
-                console.log("WebSocket message received:", message)
+useEffect(() => {
+  if (pendingStatsIds && pendingStatusIds) {
+    pendingStatsIds.forEach(id => animateAntecedents(id));
+    pendingStatusIds.forEach(id => animateAntecedents(id));
+    setPendingStatsIds(null);
+    setPendingStatusIds([]);
+  }
+}, [pendingStatsIds, pendingStatusIds, animateAntecedents]);
 
-                // Quand un nœud reçoit un message via flow/status
-                if (message.TYPE === "flow/status" && message.id) {
-                    console.log("Flow status message received for node:", message.id)
-                    console.log("Current connection map:", nodeConnectionsMap.current)
+//7
+const buildForwardConnectionsMap = useCallback(() => {
+  const forwardMap: Record<string, Array<{ targetId: string; edgeId: string }>> = {}
+  
+  edges.forEach((edge) => {
+    if (!forwardMap[edge.source]) {
+      forwardMap[edge.source] = []
+    }
+    forwardMap[edge.source].push({
+      targetId: edge.target,
+      edgeId: edge.id,
+    })
+  })
+  
+  return forwardMap
+}, [edges])
 
-                    // Déclencher l'animation des antécédents
-                    animateAntecedents(message.id)
-                }
-            } catch (error) {
-                console.error("Erreur lors du parsing du message WebSocket:", error)
-            }
-        }
+const animateFromSource = useCallback(
+  (sourceNodeId: string, visited = new Set<string>()) => {
+    if (visited.has(sourceNodeId)) {
+      return
+    }
+    visited.add(sourceNodeId)
+    
+    console.log("Animating from source node:", sourceNodeId)
+    
+    setActiveNodes((prev) => {
+      const newSet = new Set(prev)
+      newSet.add(sourceNodeId)
+      return newSet
+    })
+    
+    const forwardMap = buildForwardConnectionsMap()
+    const connections = forwardMap[sourceNodeId] || []
+    
+    if (connections.length === 0) {
+      setTimeout(() => {
+        setActiveNodes((prev) => {
+          const newSet = new Set(prev)
+          newSet.delete(sourceNodeId)
+          return newSet
+        })
+      }, 1000)
+      return
+    }
+    
+    connections.forEach((connection, index) => {
+      setTimeout(() => {
+        animateEdge(connection.edgeId, 1000)
+        
+        setTimeout(() => {
+          animateFromSource(connection.targetId, new Set(visited))
+        }, 500)
+      }, 200 * index) 
+    })
+    
+    setTimeout(() => {
+      setActiveNodes((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(sourceNodeId)
+        return newSet
+      })
+    }, 1000 + (connections.length * 200))
+  },
+  [buildForwardConnectionsMap, animateEdge]
+)
 
-        socket.addEventListener("message", handleMessage)
+const getSourceNodesFromTraffic = useCallback((trafficPriority: string[]) => {
+  const nodeIds = trafficPriority.map(id => id.replace(/__\w+$/, ''))
+  
+  const forwardMap = buildForwardConnectionsMap()
+  const allTargets = new Set(
+    Object.values(forwardMap).flat().map(conn => conn.targetId)
+  )
+  
+  const sourceNodes = nodeIds.filter(nodeId => !allTargets.has(nodeId))
+  
+  return sourceNodes
+}, [buildForwardConnectionsMap])
 
-        return () => {
-            socket.removeEventListener("message", handleMessage)
-        }
-    }, [socket])
+//9
+useEffect(() => {
+  if (!socket) return;
+
+  const handleMessage = (event: any) => {
+    try {
+      const message = JSON.parse(event.data);
+      
+      if (message.TYPE === 'flow/stats' && message.traffic?.priority) {
+        console.log("Received flow/stats with traffic:", message.traffic.priority)
+        
+        // Identifier les nœuds sources
+        const sourceNodes = getSourceNodesFromTraffic(message.traffic.priority)
+        console.log("Source nodes identified:", sourceNodes)
+        
+        // Animer depuis chaque nœud source
+        sourceNodes.forEach((sourceNodeId, index) => {
+          setTimeout(() => {
+            animateFromSource(sourceNodeId)
+          }, 500 * index) // Délai entre les sources multiples
+        })
+      }
+    } catch (error) {
+      console.error('Error parsing WebSocket message:', error);
+    }
+  };
+
+  socket.addEventListener('message', handleMessage);
+  return () => socket.removeEventListener('message', handleMessage);
+}, [socket, getSourceNodesFromTraffic, animateFromSource]);
+
+
+
+// useEffect(() => {
+//   if (!socket) return;
+
+//   const handleMessage = (event: any) => {
+//     try {
+//       const message = JSON.parse(event.data);
+//       const animationIds = getAnimationIds(message);
+
+//       if (animationIds.length > 0) {
+//         if (message.TYPE === 'flow/stats') {
+//           setPendingStatsIds(animationIds);
+//         } else if (message.TYPE === 'flow/status') {
+//           setPendingStatusIds(prev => [...prev, ...animationIds]);
+//         }
+//       }
+//     } catch (error) {
+//       console.error('Error parsing WebSocket message:', error);
+//     }
+//   };
+
+//   socket.addEventListener('message', handleMessage);
+//   return () => socket.removeEventListener('message', handleMessage);
+// }, [socket, getAnimationIds]);
+
     const handleTriggerRun = useCallback((nodeId: string) => {
         triggerAnimation(nodeId);
     }, [triggerAnimation]);
@@ -391,7 +525,7 @@ export function FlowEditor() {
     const handleDeleteNode = (nodeId: string) => {
         setNodes((nodes) => nodes.filter((node) => node.id !== nodeId))
         setEdges((edges) => edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId))
-
+        
         // Réinitialiser selectedNode si c'est le nœud supprimé
         if (selectedNode.current === nodeId) {
             selectedNode.current = null
@@ -406,25 +540,25 @@ export function FlowEditor() {
 
     useEffect(() => {
         console.log("Selected node changed:", selectedNode.current)
-        if (selectedNode.current?.startsWith("trigger")) {
+        if(selectedNode.current?.startsWith("trigger")) {
             triggerAnimation(selectedNode.current)
         }
     }, [selectedNode.current])
 
-
+    
     const nodeTypes = useMemo<NodeTypes>(
         () => ({
-            default: (props) => (
-                <CustomNode
-                    {...props}
-                    activeNodes={activeNodes}
-                    onTriggerRun={handleTriggerRun}
-                    onDeleteNode={handleDeleteNode}
-                />
-            ),
+          default: (props) => (
+            <CustomNode
+              {...props}
+              activeNodes={activeNodes}
+              onTriggerRun={handleTriggerRun}
+              onDeleteNode={handleDeleteNode}
+            />
+          ),
         }),
-        [],
-    )
+        [], 
+      )
 
     const loadFlowFromDesign = (designData: FlowDesignData) => {
         try {
@@ -466,18 +600,18 @@ export function FlowEditor() {
                     Object.entries(nodeData.connections).forEach(([outputId, targets]) => {
                         if (Array.isArray(targets)) {
                             targets.forEach((target: any, index) => {
-                                console.log("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", target)
+                                console.log("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",target)
                                 let targetNodeId = ""
                                 let targetInputId = ""
-                                console.log(typeof (target))
+                                console.log(typeof(target))
                                 if (typeof target === "string") {
-                                    console.log("weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", target)
+                                    console.log("weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",target)
                                     targetNodeId = target
                                 } else if (target && typeof target === "object") {
                                     targetNodeId = target.id || target.node || ""
                                     targetInputId = target.index
                                 }
-
+                              
                                 if (targetNodeId) {
                                     const edge: FlowEdge = {
                                         id: `e-${sourceNodeId}-${outputId}-${targetNodeId}-${index}`,
@@ -506,247 +640,247 @@ export function FlowEditor() {
         }
     }
 
-
-    const sendMessage = (message: string) => {
-        if (socket) {
-            socket.send(message)
-        } else {
-            console.error("WebSocket is not open. Unable to send message.")
-        }
+ 
+const sendMessage = (message: string) => {
+    if (socket ) {
+        socket.send(message)
+    } else {
+        console.error("WebSocket is not open. Unable to send message.")
     }
-    const requestFlowDesign = () => {
-        setIsLoadingFlow(true)
-        sendMessage(
-            JSON.stringify({
-                TYPE: "flow/design",
-            }),
-        )
-
+}
+const requestFlowDesign = () => {
+    setIsLoadingFlow(true)
+    sendMessage(
+        JSON.stringify({
+            TYPE: "flow/design",
+        }),
+    )
+   
+}
+const handleDeleteComponent = (componentId: string) => {
+    if (socket) {
+      const message = {
+        TYPE: "component_remove",
+        id: componentId,
+      }
+      socket.send(JSON.stringify(message))
+      closeContextMenu()
+    } else {
+      console.error("WebSocket is not connected")
     }
-    const handleDeleteComponent = (componentId: string) => {
-        if (socket) {
-            const message = {
-                TYPE: "component_remove",
-                id: componentId,
-            }
-            socket.send(JSON.stringify(message))
-            closeContextMenu()
-        } else {
-            console.error("WebSocket is not connected")
-        }
-    }
+  }
 
-    const handleEditComponent = (componentId: string) => {
-        // Implement edit functionality
-        console.log("Edit component:", componentId)
-        closeContextMenu()
-    }
+  const handleEditComponent = (componentId: string) => {
+    // Implement edit functionality
+    console.log("Edit component:", componentId)
+    closeContextMenu()
+  }
 
-    const handleCloneComponent = (component: any) => {
-        // Implement clone functionality
-        console.log("Clone component:", component)
-        closeContextMenu()
-    }
+  const handleCloneComponent = (component: any) => {
+    // Implement clone functionality
+    console.log("Clone component:", component)
+    closeContextMenu()
+  }
 
-    const handleCopySource = (component: any) => {
-        // Implement copy source functionality
-        console.log("Copy source code for:", component)
-        closeContextMenu()
-    }
+  const handleCopySource = (component: any) => {
+    // Implement copy source functionality
+    console.log("Copy source code for:", component)
+    closeContextMenu()
+  }
 
-    const handlePublishComponent = (component: any) => {
-        // Implement publish functionality
-        console.log("Publish component:", component)
-        closeContextMenu()
-    }
+  const handlePublishComponent = (component: any) => {
+    // Implement publish functionality
+    console.log("Publish component:", component)
+    closeContextMenu()
+  }
 
-    const handleReadInfo = (component: any) => {
-        // Implement read info functionality
-        console.log("Read info for:", component)
-        closeContextMenu()
-    }
+  const handleReadInfo = (component: any) => {
+    // Implement read info functionality
+    console.log("Read info for:", component)
+    closeContextMenu()
+  }
 
-    const onDragOver = (event: React.DragEvent) => {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
-    };
+  const onDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  };
 
-    const { project } = useReactFlow();
+  const { project } = useReactFlow();
     const onDrop = (event: React.DragEvent) => {
-        event.preventDefault();
+    event.preventDefault();
 
-        // Récupérer les données du composant depuis l'événement drag
-        const componentData = event.dataTransfer.getData("application/reactflow");
-        if (!componentData) return;
+    // Récupérer les données du composant depuis l'événement drag
+    const componentData = event.dataTransfer.getData("application/reactflow");
+    if (!componentData) return;
 
-        // Parser les données du composant
-        const component: FlowComponent = JSON.parse(componentData);
+    // Parser les données du composant
+    const component: FlowComponent = JSON.parse(componentData);
 
-        // Obtenir la position de la souris dans le canevas
-        const reactFlowBounds = event.currentTarget.getBoundingClientRect();
-        const position = project({
-            x: event.clientX - reactFlowBounds.left,
-            y: event.clientY - reactFlowBounds.top,
-        });
+    // Obtenir la position de la souris dans le canevas
+    const reactFlowBounds = event.currentTarget.getBoundingClientRect();
+    const position = project({
+      x: event.clientX - reactFlowBounds.left,
+      y: event.clientY - reactFlowBounds.top,
+    });
 
-        // Créer un nouveau nœud
-        const newNodeId = `${component.id}_${Date.now()}`;
-        const newNode: FlowNode = {
-            id: newNodeId,
-            type: "default",
-            position,
-            data: {
-                label: component.name,
-                type: component.type || component.id,
-                icon: component.icon,
-                component,
-                outputs: component.outputs,
-            },
-        };
-
-        // Ajouter le nœud à l'état
-        setNodes((nds) => [...nds, newNode]);
-        selectedNode.current = newNodeId;
-
-        // Envoyer la mise à jour via WebSocket
-        sendMessage(
-            JSON.stringify({
-                TYPE: "flow/add-node",
-                node: {
-                    id: newNodeId,
-                    component: component.id,
-                    name: component.name,
-                    position: newNode.position,
-                },
-            })
-        );
-
-        console.log(`Dropped component: ${component.name} (${component.id}) at position:`, position);
+    // Créer un nouveau nœud
+    const newNodeId = `${component.id}_${Date.now()}`;
+    const newNode: FlowNode = {
+      id: newNodeId,
+      type: "default",
+      position,
+      data: {
+        label: component.name,
+        type: component.type || component.id,
+        icon: component.icon,
+        component,
+        outputs: component.outputs,
+      },
     };
 
-    useEffect(() => {
-        if (socket === null) return
-        const handleMessage = (event: MessageEvent) => {
+    // Ajouter le nœud à l'état
+    setNodes((nds) => [...nds, newNode]);
+    selectedNode.current = newNodeId;
 
+    // Envoyer la mise à jour via WebSocket
+    sendMessage(
+      JSON.stringify({
+        TYPE: "flow/add-node",
+        node: {
+          id: newNodeId,
+          component: component.id,
+          name: component.name,
+          position: newNode.position,
+        },
+      })
+    );
+
+    console.log(`Dropped component: ${component.name} (${component.id}) at position:`, position);
+  };
+   
+    useEffect(() => {
+        if(socket === null) return
+        const handleMessage = (event: MessageEvent) => {
+                
             console.log("socket conneciton")
             try {
-                const message = JSON.parse(event.data as string);
-
-                console.log("TYPE reçu :", message.TYPE);
-
-                switch (message.TYPE) {
-                    case "flow/components": {
-                        const comps = message.data || [];
-                        components.current = comps;
-
-                        const categories: Record<string, FlowComponent[]> = {};
-                        comps.forEach((comp: FlowComponent) => {
-                            const category = comp.category || comp.group || "Other";
-                            (categories[category] ??= []).push(comp);
-                        });
-
-                        setComponentCategories(categories);
-                        break;
+                    const message = JSON.parse(event.data as string);
+        
+                    console.log("TYPE reçu :", message.TYPE);
+        
+                    switch (message.TYPE) {
+                        case "flow/components": {
+                            const comps = message.data || [];
+                            components.current = comps;
+        
+                            const categories: Record<string, FlowComponent[]> = {};
+                            comps.forEach((comp: FlowComponent) => {
+                                const category = comp.category || comp.group || "Other";
+                                (categories[category] ??= []).push(comp);
+                            });
+        
+                            setComponentCategories(categories);
+                            break;
+                        }
+        
+                        case "flow/status": {
+                            setStatuses((prev) => ({
+                                ...prev,
+                                [message.id]: message.data,
+                            }));
+        
+                            setNodes((nodes) =>
+                                nodes.map((node) =>
+                                    node.id === message.id
+                                        ? {
+                                              ...node,
+                                              data: {
+                                                  ...node.data,
+                                                  status: message.data.status,
+                                              },
+                                          }
+                                        : node
+                                )
+                            );
+                            break;
+                        }
+        
+                        case "flow/stats": {
+                            setStats(message);
+                            setIsPaused(message.paused);
+                            break;
+                        }
+        
+                        case "flow/nodes": {
+                            // const flowNodes = (message.nodes || []).map((node: any) => {
+                            //     const component =
+                            //         components.current?.find((c) => c.id === node.component || c.id === node.type) || {
+                            //             id: node.type,
+                            //             name: node.name || node.id,
+                            //             type: node.type,
+                            //             outputs: [],
+                            //             icon: "",
+                            //         };
+        
+                            //     return {
+                            //         id: node.id,
+                            //         type: "default",
+                            //         note: node.note || "",
+                            //         position: { x: node.position?.x || 0, y: node.position?.y || 0 },
+                            //         data: {
+                            //             label: node.name || component.name,
+                            //             type: node.type || component.type,
+                            //             status: statuses[node.id]?.status,
+                            //             icon: component.icon,
+                            //             component: component,
+                            //             outputs: component.outputs,
+                            //         },
+                            //     };
+                            // });
+        
+                            // const flowEdges = (message.edges || []).map((edge: any) => ({
+                            //     id: edge.id,
+                            //     source: edge.source,
+                            //     target: edge.target,
+                            //     sourceHandle: edge.sourceHandle,
+                            //     targetHandle: edge.targetHandle,
+                            // }));
+        
+                            // setNodes(flowNodes);
+                            // setEdges(flowEdges);
+                            break;
+                        }
+        
+                        case "flow/design": {
+                            console.log("Received flow/design data:", message.data);
+                            loadFlowFromDesign(message.data);
+                            break;
+                        }
+        
+                        case "flow/config": {
+                            console.log("update configuration");
+                            setNodes((nodes) =>
+                                nodes.map((node) =>
+                                    node.id === message.id
+                                        ? {
+                                              ...node,
+                                              data: {
+                                                  ...node.data,
+                                                  component: {
+                                                      ...node.data.component,
+                                                      config: message.data,
+                                                  },
+                                              },
+                                          }
+                                        : node
+                                )
+                            );
+                            break;
+                        }
+        
+                        default:
+                            console.warn("Type de message WebSocket inconnu :", message.TYPE);
                     }
-
-                    case "flow/status": {
-                        setStatuses((prev) => ({
-                            ...prev,
-                            [message.id]: message.data,
-                        }));
-
-                        setNodes((nodes) =>
-                            nodes.map((node) =>
-                                node.id === message.id
-                                    ? {
-                                        ...node,
-                                        data: {
-                                            ...node.data,
-                                            status: message.data.status,
-                                        },
-                                    }
-                                    : node
-                            )
-                        );
-                        break;
-                    }
-
-                    case "flow/stats": {
-                        setStats(message);
-                        setIsPaused(message.paused);
-                        break;
-                    }
-
-                    case "flow/nodes": {
-                        // const flowNodes = (message.nodes || []).map((node: any) => {
-                        //     const component =
-                        //         components.current?.find((c) => c.id === node.component || c.id === node.type) || {
-                        //             id: node.type,
-                        //             name: node.name || node.id,
-                        //             type: node.type,
-                        //             outputs: [],
-                        //             icon: "",
-                        //         };
-
-                        //     return {
-                        //         id: node.id,
-                        //         type: "default",
-                        //         note: node.note || "",
-                        //         position: { x: node.position?.x || 0, y: node.position?.y || 0 },
-                        //         data: {
-                        //             label: node.name || component.name,
-                        //             type: node.type || component.type,
-                        //             status: statuses[node.id]?.status,
-                        //             icon: component.icon,
-                        //             component: component,
-                        //             outputs: component.outputs,
-                        //         },
-                        //     };
-                        // });
-
-                        // const flowEdges = (message.edges || []).map((edge: any) => ({
-                        //     id: edge.id,
-                        //     source: edge.source,
-                        //     target: edge.target,
-                        //     sourceHandle: edge.sourceHandle,
-                        //     targetHandle: edge.targetHandle,
-                        // }));
-
-                        // setNodes(flowNodes);
-                        // setEdges(flowEdges);
-                        break;
-                    }
-
-                    case "flow/design": {
-                        console.log("Received flow/design data:", message.data);
-                        loadFlowFromDesign(message.data);
-                        break;
-                    }
-
-                    case "flow/config": {
-                        console.log("update configuration");
-                        setNodes((nodes) =>
-                            nodes.map((node) =>
-                                node.id === message.id
-                                    ? {
-                                        ...node,
-                                        data: {
-                                            ...node.data,
-                                            component: {
-                                                ...node.data.component,
-                                                config: message.data,
-                                            },
-                                        },
-                                    }
-                                    : node
-                            )
-                        );
-                        break;
-                    }
-
-                    default:
-                        console.warn("Type de message WebSocket inconnu :", message.TYPE);
-                }
             } catch (err) {
                 console.error("Erreur lors du traitement des messages WebSocket :", err);
                 const categories: Record<string, FlowComponent[]> = {};
@@ -754,13 +888,13 @@ export function FlowEditor() {
                 setLoading(false);
             }
         }
-
-
-
+          
+      
+     
         socket.addEventListener('message', handleMessage);
         return () => socket.removeEventListener('message', handleMessage);
     }, [socket]);
-
+    
     useEffect(() => {
         if (components.current.length > 0 && nodes.length > 0) {
             setNodes((currentNodes) =>
@@ -830,7 +964,7 @@ export function FlowEditor() {
     }
 
     const onConnect = (connection: Connection) => {
-        console.log("connnnnnnnnnnnnnnnnnnnnnnnnnnnnnection*************************************", connection)
+        console.log("connnnnnnnnnnnnnnnnnnnnnnnnnnnnnection*************************************",connection)
         const newEdge = {
             id: `e-${connection.source}-${connection.sourceHandle}-${connection.target}-${Date.now()}`,
             source: connection.source || "",
@@ -849,14 +983,14 @@ export function FlowEditor() {
         // }
     }
 
-
-    const onNodeClick = (_: React.MouseEvent, node: Node) => {
-        selectedNode.current = node.id
-        forceUpdate((x) => x + 1)
-    }
-    useEffect(() => {
-        console.log('Selected node changed:', selectedNode.current)
-    }, [selectedNode.current])
+ 
+const onNodeClick = (_: React.MouseEvent, node: Node) => {
+    selectedNode.current = node.id
+    forceUpdate((x) => x + 1) 
+  }
+  useEffect(() => {
+    console.log('Selected node changed:', selectedNode.current)
+  }, [selectedNode.current])
     useEffect(() => {
     }, [selectedNode.current])
     const handleBackHome = () => {
@@ -876,9 +1010,11 @@ export function FlowEditor() {
     const saveFlow = () => {
         if (socket) {
             const flowData: Record<string, any> = {}
+    
             nodes.forEach((node) => {
                 const nodeComponent = node.data.component
                 const nodeId = node.id
+    
                 const nodeData: Record<string, any> = {
                     id: nodeId,
                     component: nodeComponent.id,
@@ -888,25 +1024,30 @@ export function FlowEditor() {
                     connected: true,
                     connections: {},
                 }
+    
                 if (nodeComponent.outputs && nodeComponent.outputs.length > 0) {
                     nodeData.outputs = nodeComponent.outputs.map((output) => ({
                         id: output.id,
                         name: output.name,
                     }))
                 }
+    
                 if (nodeComponent.inputs && nodeComponent.inputs.length > 0) {
                     nodeData.inputs = nodeComponent.inputs.map((input) => ({
                         id: input.id,
                         name: input.name,
                     }))
                 }
+    
                 flowData[nodeId] = nodeData
             })
+    
             edges.forEach((edge) => {
                 const sourceId = edge.source
                 const targetId = edge.target
                 const sourceHandle = edge.sourceHandle || "output"
                 const targetHandle = edge.targetHandle || "input"
+    
                 if (flowData[sourceId]) {
                     if (!flowData[sourceId].connections) {
                         flowData[sourceId].connections = {}
@@ -920,43 +1061,49 @@ export function FlowEditor() {
                     })
                 }
             })
+    
             console.log("Saving flow data:", flowData)
+    
             socket.send(
                 JSON.stringify({
                     TYPE: "save",
                     data: flowData,
-                }),
+                })
             )
+    
             toast({
                 title: "Success",
                 className: "bg-green-500 text-white",
                 description: "Flow saved successfully",
             });
-
+    
             setTimeout(() => {
-                requestFlowDesign()
-            }, 500)
-
+                
+                reconnect();
+                setTimeout(() => {
+                    requestFlowDesign();
+                }, 500);
+            }, 100);
         }
     }
     const handleContextMenu = (e: React.MouseEvent, component: any) => {
         e.preventDefault()
         setContextMenu({
-            visible: true,
-            x: e.clientX,
-            y: e.clientY,
-            component,
+          visible: true,
+          x: e.clientX,
+          y: e.clientY,
+          component,
         })
-    }
-
-    const closeContextMenu = () => {
+      }
+    
+      const closeContextMenu = () => {
         setContextMenu({
-            visible: false,
-            x: 0,
-            y: 0,
-            component: null,
+          visible: false,
+          x: 0,
+          y: 0,
+          component: null,
         })
-    }
+      }
 
     const filteredComponents = Object.entries(componentCategories)
         .map(([category, comps]) => ({
@@ -1014,7 +1161,7 @@ export function FlowEditor() {
                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
                     </div>
                 </div>
-
+    
                 <div className="flex-1 overflow-y-auto">
                     {components.current.length === 0 ? (
                         <div className="flex flex-col items-center justify-center flex-1 p-6 mt-12">
@@ -1037,13 +1184,13 @@ export function FlowEditor() {
                                     <path d="M6 13V8a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3Z" />
                                 </svg>
                             </div>
-
+    
                             <p className="text-gray-500 dark:text-gray-400 text-center mb-4">
                                 You don't have installed<br />
                                 any FlowStream<br />
                                 components
                             </p>
-
+    
                             <button
                                 onClick={handleDownloadComponent}
                                 className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 rounded px-4 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -1061,16 +1208,16 @@ export function FlowEditor() {
                                 <div className="p-2">
                                     {group.components.map((component) => (
                                         <div
-                                            key={component.id}
-                                            className="p-2 mb-1 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
-                                            onClick={() => handleAddComponent(component)}
-                                            onContextMenu={(e) => handleContextMenu(e, component)}
-                                            draggable
-                                            onDragStart={(e) => {
-                                                e.dataTransfer.setData("application/reactflow", JSON.stringify(component));
-                                                e.dataTransfer.effectAllowed = "move";
-                                            }}
-                                        >
+  key={component.id}
+  className="p-2 mb-1 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+  onClick={() => handleAddComponent(component)}
+  onContextMenu={(e) => handleContextMenu(e, component)}
+  draggable
+  onDragStart={(e) => {
+    e.dataTransfer.setData("application/reactflow", JSON.stringify(component));
+    e.dataTransfer.effectAllowed = "move"; 
+  }}
+>
                                             <div className="w-6 h-6 mr-2 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded text-xs">
                                                 {(() => {
                                                     const iconType = component.id;
@@ -1132,12 +1279,12 @@ export function FlowEditor() {
                     </div>
                 </div>
             </div>
-
+    
             {/* Main Area */}
             <div className="flex-1 flex flex-col">
                 <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" className="bg-primary dark:bg-orange-700" size="sm" onClick={handleBackHome}>
+                        <Button variant="outline"  className="bg-primary dark:bg-orange-700" size="sm" onClick={handleBackHome}>
                             <ArrowBigLeft className="h-4 w-4 mr-1" />
                             Home
                         </Button>
@@ -1190,16 +1337,16 @@ export function FlowEditor() {
                             </PopoverContent>
                         </Popover>
                         <Button
-                            variant="outline"
-                            className="bg-primary dark:bg-orange-700"
-                            size="sm"
-                            onClick={() => {
-                                window.location.reload();
-                            }}
-                        >
-                            <RefreshCw className={`h-4 w-4 mr-1 }`} />
-                            {"Reload Flow"}
-                        </Button>
+  variant="outline"
+  className="bg-primary dark:bg-orange-700"
+  size="sm"
+  onClick={() => {
+    window.location.reload();
+  }}
+>
+  <RefreshCw className={`h-4 w-4 mr-1 }`} />
+  { "Reload Flow"}
+</Button>
 
                         <Button variant="outline" size="sm" className="bg-primary dark:bg-orange-700">
                             <Settings className="h-4 w-4 mr-1" />
@@ -1229,33 +1376,33 @@ export function FlowEditor() {
                 </div>
                 <div className="flex-1 h-full">
 
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
-                        onNodeClick={onNodeClick}
-                        nodeTypes={nodeTypes}
-                        edgesFocusable={false}
-                        edgesUpdatable={false}
-                        fitView
-                        fitViewOptions={{ maxZoom: 1, minZoom: 0.1, duration: 800 }}
-                        defaultViewport={{ x: 0, y: 0, zoom }}
-                        onInit={onInit}
-                        className="bg-white dark:bg-gray-900"
-                        onDragOver={onDragOver} // Ajouter le gestionnaire drag over
-                        onDrop={onDrop} // Ajouter le gestionnaire drop
+                <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={onNodeClick}
+            nodeTypes={nodeTypes}
+            edgesFocusable={false}
+            edgesUpdatable={false}
+            fitView
+            fitViewOptions={{ maxZoom: 1, minZoom: 0.1, duration: 800 }} 
+            defaultViewport={{ x: 0, y: 0, zoom }} 
+            onInit={onInit} 
+            className="bg-gray-200 dark:bg-gray-900"
+            onDragOver={onDragOver}
+            onDrop={onDrop} 
+            
+          >
+            <Background color="white" />
 
-                    >
-                        <Background color="white" />
-
-                        <Controls />
-                        <MiniMap />
-                    </ReactFlow>
+            <Controls />
+            <MiniMap />
+          </ReactFlow>
                 </div>
             </div>
-
+    
             {/* Properties Panel */}
             {selectedNode.current && (
                 <div className="w-64 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-y-auto">
@@ -1282,12 +1429,13 @@ export function FlowEditor() {
                                     <label className="text-xs text-gray-500 dark:text-gray-400">Status</label>
                                     <div className="text-sm flex items-center text-gray-900 dark:text-white">
                                         <span
-                                            className={`inline-block w-2 h-2 rounded-full mr-1 ${nodes.find((node) => node.id === selectedNode.current)?.data.status === "reconnecting"
-                                                ? "bg-yellow-500"
-                                                : nodes.find((node) => node.id === selectedNode.current)?.data.status === "connected"
+                                            className={`inline-block w-2 h-2 rounded-full mr-1 ${
+                                                nodes.find((node) => node.id === selectedNode.current)?.data.status === "reconnecting"
+                                                    ? "bg-yellow-500"
+                                                    : nodes.find((node) => node.id === selectedNode.current)?.data.status === "connected"
                                                     ? "bg-green-500"
                                                     : "bg-gray-500"
-                                                }`}
+                                            }`}
                                         />
                                         {nodes.find((node) => node.id === selectedNode.current)?.data.status || "unknown"}
                                     </div>

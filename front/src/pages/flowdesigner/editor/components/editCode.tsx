@@ -20,7 +20,7 @@ interface CodeEditorProps {
 
 export default function CodeEditor1({  component, onCodeChange, tst }: CodeEditorProps) {
   console.log("CodeEditor1", component?.id)
-  const socket=useWebSocket()
+  const { socket, reconnect } = useWebSocket();
   const [code, setCode] = useState("")
   const initialRenderRef = useRef(true)
   const lastComponentRef = useRef(component)

@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast"; 
 import type { IoTCard } from "@/lib/types";
+import { CreateFlowDialog } from "./components/create-flow-dialog";
 
 export default function Flows() {
   const { tenant } = useSelector((state: RootState) => state.auth);
@@ -41,7 +42,12 @@ export default function Flows() {
   const [searchTerm, setSearchTerm] = useState("");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importCode, setImportCode] = useState(""); 
-
+  const [isCreateFlowOpen, setIsCreateFlowOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0)
+  const handleFlowCreated = () => {
+    setRefreshKey((prev) => prev + 1)
+    fetchData();
+  }
   const fetchData = async () => {
     try {
       console.log("Fetching data...");
@@ -57,6 +63,7 @@ export default function Flows() {
       const transformedData: IoTCard[] = data.map((item: any) => ({
         id: item.id || "",
         title: item.name || "Sans titre",
+        author: item.author || "Inconnu",
         subtitle: item.subtitle || item.reference || "",
         iconType: item.icon || "chip",
         size: item.size || 0,
@@ -108,10 +115,12 @@ export default function Flows() {
     navigate(`/editor/${cardId}`);
   };
 
+  // const handleCreateFlow = () => {
+  //   navigate("/create-flow");
+  // };
   const handleCreateFlow = () => {
-    navigate("/create-flow");
+    setIsCreateFlowOpen(true); 
   };
-
   const handleImportFlow = async () => {
     if (!importCode.trim()) {
       toast({
@@ -122,22 +131,23 @@ export default function Flows() {
       return;
     }
     console.log("Importing flow with code:", importCode);
-
+const payload = {
+        schema: "clipboard_import",
+        data: {
+            data: importCode,
+        },
+        };
     try {
       await apiClient.post(
         "workflow/import",
         {
-          schema: "clipboard_import",
-          data: {
-            data: importCode
-          }
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+        tenantId: tenant.id,
+        ...payload,
+          
+          });
+        
+      
+    
 
       toast({
         title: "Success",
@@ -297,26 +307,17 @@ export default function Flows() {
         {/* Popover for FlowStream actions */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              className="flex items-center gap-1 px-3 py-1.5 bg-primary text-white rounded hover:bg-orange-700 transition-colors"
-            >
+            <Button className="flex items-center gap-1 px-3 py-1.5 bg-primary text-white rounded hover:bg-orange-700 transition-colors">
               <Plus size={16} className="text-white" />
               FlowStream
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-56 p-2">
             <div className="space-y-1">
-              <Button
+            <CreateFlowDialog onFlowCreated={handleFlowCreated} />
+            <Button
                 variant="ghost"
-                className="w-full justify-start text-black hover:bg-gray-100 px-3 py-2"
-                onClick={handleCreateFlow}
-              >
-                <Plus size={16} className="mr-3" />
-                Create new flow
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-black hover:bg-gray-100 px-3 py-2"
+                className="w-full justify-start text-black hover:bg-gray-100 px-3 py-2 dark:hover:bg-neutral-700"
                 onClick={() => setImportDialogOpen(true)}
               >
                 <Upload size={16} className="mr-3" />
@@ -475,5 +476,6 @@ export default function Flows() {
         )}
       </div>
     </div>
+
   );
 }
